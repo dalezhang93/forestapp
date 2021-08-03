@@ -1,17 +1,44 @@
+<!--
+ * @Descripttion: 
+ * @Author: sandro0618
+ * @Date: 2021-07-20 09:28:02
+ * @LastEditors: sandro0618
+ * @LastEditTime: 2021-08-03 09:47:09
+-->
 <!DOCTYPE html>
-<html lang="">
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width,initial-scale=1.0">
-    <link rel="icon" href="<%= BASE_URL %>favicon.ico">
-    <title><%= htmlWebpackPlugin.options.title %></title>
-  </head>
-  <body>
-    <noscript>
-      <strong>We're sorry but <%= htmlWebpackPlugin.options.title %> doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
-    </noscript>
-    <div id="app"></div>
-    <!-- built files will be auto injected -->
-  </body>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <link rel="icon" href="<%= BASE_URL %>favicon.ico">
+  <title>forestapp</title>
+  <!-- 使用纯Cesium进行开发 -->
+  <!-- <script src="./js/Cesium/Cesium.js"></script> -->
+  <!-- <link rel="stylesheet" href="./js/Cesium/Widgets/widgets.css"> -->
+
+  <!-- 使用EarthSDK进行开发 -->
+  <script src="./js/earthsdk/XbsjEarth/XbsjEarth.js"></script>
+  <script src="http://mapv.baidu.com/build/mapv.min.js"></script>
+  <style>
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0px;
+      padding: 0px;
+    }
+  </style>
+</head>
+
+<body>
+  <noscript>
+    <strong>We're sorry forestapp doesn't work properly without JavaScript enabled. Please enable it to
+      continue.</strong>
+  </noscript>
+  <div id="app"></div>
+  <!-- built files will be auto injected -->
+</body>
+
 </html>
