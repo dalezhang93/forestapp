@@ -3,7 +3,7 @@
  * @Author: sandro0618
  * @Date: 2021-07-20 09:28:02
  * @LastEditors: sandro0618
- * @LastEditTime: 2021-08-03 11:34:40
+ * @LastEditTime: 2021-08-08 11:35:38
 -->
 <template>
   <div>
@@ -17,11 +17,13 @@
           <el-input v-model="fire.latitude"></el-input>
         </el-form-item>
         <el-form-item>
-          <el-button round type="primary" size="mini" @click="handleClickFire">开始起火</el-button>
-          <el-button round size="mini" @click="handleClickReset">重置状态</el-button>
+          <el-button round type="primary" size="mini" @click="handleClickFire">起火</el-button>
+          <el-button v-if="showContinue" round size="mini" @click="handleContinue">继续</el-button>
+          <el-button v-if="showSuspend" round size="mini" @click="handleSuspend">暂停</el-button>
+          <el-button round size="mini" @click="handleClickReset">重置</el-button>
         </el-form-item>
         <el-form-item label="温度：">
-          <el-input v-model="fire.temperature"></el-input>
+          <el-input-number v-model="fire.temperature" :min="1" :max="500" label="温度"></el-input-number>
         </el-form-item>
         <el-form-item label="风力等级：">
           <el-input-number v-model="fire.windGrade" :min="1" :max="12" label="风力等级"></el-input-number>
@@ -31,6 +33,36 @@
             <el-option v-for="(item, index) in windAngleList" :key="index" :label="item.label" :value="item.value"></el-option>
           </el-select>
         </el-form-item>
+        <el-form-item label="开始时间：">
+          <span>{{ formatTime(fire.startTime) }}</span>
+        </el-form-item>
+        <el-form-item label="当前时间：">
+          <span>{{ formatTime(fire.currentTime) }}</span>
+        </el-form-item>
+        <div>
+          <div v-if="showMore" @click="showMore = false">
+            <span style="cursor: default;">展开</span>
+            <i class="el-icon-caret-bottom"></i>
+          </div>
+          <div v-if="!showMore">
+            <el-form-item label="a：">
+              <el-input v-model="fire.a"></el-input>
+            </el-form-item>
+            <el-form-item label="b：">
+              <el-input v-model="fire.b"></el-input>
+            </el-form-item>
+            <el-form-item label="c：">
+              <el-input v-model="fire.c"></el-input>
+            </el-form-item>
+            <el-form-item>
+              <el-button round type="primary" size="mini" @click="firesInit">初始化</el-button>
+            </el-form-item>
+          </div>
+          <div v-if="!showMore" @click="showMore = true">
+            <span style="cursor: default;">收起</span>
+            <i class="el-icon-caret-top"></i>
+          </div>
+        </div>
       </el-form>
     </div>
   </div>
@@ -76,8 +108,13 @@ export default {
         // 风向角度：东、南、西、北、东南、东北、西南、西北
         windAngle: 0,
         // 时间：格式为20210801 23:36
-        simulatedtime: new Date()
+        startTime: null,
+        currentTime: null
       },
+      showContinue: false,
+      showSuspend: false,
+      showStartBtn: true,
+      showMore: true,
       // 注意：Earth和Cesium的相关变量放在vue中，必须使用下划线作为前缀！
       theEarth: undefined,
       treeData: [],
@@ -89,7 +126,7 @@ export default {
     this.getWindAngleList()
   },
   mounted() {
-    this.firesInit()
+    // this.firesInit()
     if (typeof XE !== 'undefined') {
       XE.ready().then(() => XE.HTML.loadMapV())
         .then(() => {
@@ -111,7 +148,22 @@ export default {
     this.theEarth = this.theEarth && this.theEarth.destroy()
   },
   methods: {
+    handleSuspend() {
+      this.showContinue = true
+      this.showSuspend = false
+      clearInterval(this.timer)
+      this.timer = null
+    },
+    handleContinue() {
+      this.showContinue = false
+      this.showSuspend = true
+      clearInterval(this.timer)
+      this.treeFireTimer()
+    },
     handleClickReset() {
+      this.showStartBtn = true
+      this.showContinue = false
+      this.showSuspend = false
       this.resetFire()
     },
     getWindAngleList() {
@@ -164,18 +216,24 @@ export default {
     resetFire() {
       clearInterval(this.timer)
       this.timer = null
+      // this.createTree(this.treeData)
       resetFire()
         .then(res => {
           if(res.data.code === 200) {
             console.log(res.data.data)
+            this.createTree(res.data.data)
           }
-          this.getAllFires()
         })
         .catch(err => {
           console.log(err)
         })
     },
+    formatTime(time) {
+      return time ? dayjs(time).format('YYYY-MM-DD HH:mm') : ''
+    },
     startFire(treeid) {
+      this.fire.startTime = new Date()
+      this.fire.currentTime = this.fire.startTime
       let params = {
         treeid: treeid
       }
@@ -190,7 +248,7 @@ export default {
         })
     },
     nextFire() {
-      this.fire.simulatedtime = dayjs(this.fire.simulatedtime).add(1, 'h')
+      this.fire.currentTime = dayjs(this.fire.currentTime).add(30, 'm')
       let params = {
         a: this.fire.a,
         b: this.fire.b,
@@ -198,7 +256,7 @@ export default {
         T: this.fire.temperature,
         W: this.fire.windGrade,
         windAngle: this.fire.windAngle,
-        simulatedtime: this.fire.simulatedtime.format('YYYY-MM-DD hh:mm')
+        simulatedtime: this.fire.currentTime.format('YYYY-MM-DD HH:mm')
       }
       nextFire(params)
         .then(res => {
@@ -218,6 +276,8 @@ export default {
       if(!firstFireTree) {
         return
       }
+      this.showStartBtn = false
+      this.showSuspend = true
       firstFireTree.status = 1
       this.createTree([firstFireTree])
       this.startFire(firstFireTree.treeid)
