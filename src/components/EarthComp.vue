@@ -3,7 +3,7 @@
  * @Author: sandro0618
  * @Date: 2021-07-20 09:28:02
  * @LastEditors: sandro0618
- * @LastEditTime: 2021-08-08 11:35:38
+ * @LastEditTime: 2021-08-12 08:58:08
 -->
 <template>
   <div>
@@ -23,10 +23,10 @@
           <el-button round size="mini" @click="handleClickReset">重置</el-button>
         </el-form-item>
         <el-form-item label="温度：">
-          <el-input-number v-model="fire.temperature" :min="1" :max="500" label="温度"></el-input-number>
+          <el-input-number v-model="fire.temperature" :min="1" :max="100" label="温度"></el-input-number>
         </el-form-item>
         <el-form-item label="风力等级：">
-          <el-input-number v-model="fire.windGrade" :min="1" :max="12" label="风力等级"></el-input-number>
+          <el-input-number v-model="fire.windGrade" :min="0" :max="12" label="风力等级"></el-input-number>
         </el-form-item>
         <el-form-item label="风向角度：">
           <el-select v-model="fire.windAngle" placeholder="请选择风向角度">
@@ -119,7 +119,9 @@ export default {
       theEarth: undefined,
       treeData: [],
       timer: null,
-      windAngleList: []
+      windAngleList: [],
+      lastFiredTreeList: null,
+      lastFiredTime: null
     };
   },
   created() {
@@ -148,6 +150,10 @@ export default {
     this.theEarth = this.theEarth && this.theEarth.destroy()
   },
   methods: {
+    isHourInterval(end) {
+      const interval = dayjs(end).valueOf() - this.fire.startTime.valueOf()
+      return interval % (3600 * 1000) === 0
+    },
     handleSuspend() {
       this.showContinue = true
       this.showSuspend = false
@@ -262,7 +268,22 @@ export default {
         .then(res => {
           if(res.data.code === 200) {
             const data = res.data.data
+            if(this.lastFiredTreeList) {
+              const flag = this.isHourInterval(this.lastFiredTime)
+              if(flag) {
+                this.lastFiredTreeList.forEach(item => {
+                  item.status = 8
+                })
+              }else {
+                this.lastFiredTreeList.forEach(item => {
+                  item.status = 9
+                })
+              }
+              this.createTree(this.lastFiredTreeList)
+            }
             this.createTree(data)
+            this.lastFiredTreeList = data
+            this.lastFiredTime = this.fire.currentTime
             // this.createModel(data)
             // this.flyToGoal(data[0].treeLocationY, data[0].treeLocationX)
           }
@@ -326,9 +347,16 @@ export default {
       var dataSet = new mapv.DataSet(treeDatas)
       var options = {
         splitList: {
+          // green
           0: 'rgba(0, 77, 0, 0.8)',
-          1: 'rgba(204, 0, 0, 0.8)',
-          2: 'rgba(26, 26, 26, 0.8)'
+          // orange
+          1: 'rgba(249, 121, 2, 0.8)',
+          // blank
+          2: 'rgba(26, 26, 26, 0.8)',
+          // white
+          8: 'rgba(255, 255, 255, 0.8)',
+          // red
+          9: 'rgba(204, 0, 0, 0.8)'
         },
         draw: 'category'
       }
@@ -399,7 +427,7 @@ export default {
       var url = './tree.glb'
       var position = Cesium.Cartesian3.fromDegrees(tree.treeLocationY, tree.treeLocationX, 500)
       var color = tree.status === 0 ? Cesium.Color.CHARTREUSE : tree.status === 1 ? Cesium.Color.RED : Cesium.Color.GREY
-      var heightScale = 1.0 + Number.parseInt(tree.treeheight / 2) / 2
+      var heightScale = aNumber.parseInt(tree.treeheight / 2) / 2
 
       var entity = viewer.entities.add({
         // id: tree.treeid,
