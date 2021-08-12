@@ -3,7 +3,7 @@
  * @Author: sandro0618
  * @Date: 2021-07-20 09:28:02
  * @LastEditors: sandro0618
- * @LastEditTime: 2021-08-12 08:58:08
+ * @LastEditTime: 2021-08-12 09:04:05
 -->
 <template>
   <div>
@@ -235,7 +235,7 @@ export default {
         })
     },
     formatTime(time) {
-      return time ? dayjs(time).format('YYYY-MM-DD HH:mm') : ''
+      return time ? dayjs(time).format('YYYY-MM-DD HH:mm:ss') : ''
     },
     startFire(treeid) {
       this.fire.startTime = new Date()
@@ -262,7 +262,7 @@ export default {
         T: this.fire.temperature,
         W: this.fire.windGrade,
         windAngle: this.fire.windAngle,
-        simulatedtime: this.fire.currentTime.format('YYYY-MM-DD HH:mm')
+        simulatedtime: this.fire.currentTime.format('YYYY-MM-DD HH:mm:ss')
       }
       nextFire(params)
         .then(res => {
