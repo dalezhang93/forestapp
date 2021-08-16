@@ -3,17 +3,17 @@
  * @Author: sandro0618
  * @Date: 2021-07-20 09:28:02
  * @LastEditors: sandro0618
- * @LastEditTime: 2021-08-12 09:04:05
+ * @LastEditTime: 2021-08-16 19:21:38
 -->
 <template>
   <div>
     <div ref="earthContainer" class="earth-container"></div>
-    <div class="box">
-      <el-form ref="fire" :model="fire" label-position="right" size="mini" label-width="100px">
-        <el-form-item label="经度：">
+    <div class="earth-box">
+      <el-form ref="fire" :model="fire" :rules="rules" label-position="right" size="mini" label-width="100px">
+        <el-form-item label="经度：" prop="longitude">
           <el-input v-model="fire.longitude"></el-input>
         </el-form-item>
-        <el-form-item label="纬度：">
+        <el-form-item label="纬度：" prop="latitude">
           <el-input v-model="fire.latitude"></el-input>
         </el-form-item>
         <el-form-item>
@@ -22,13 +22,13 @@
           <el-button v-if="showSuspend" round size="mini" @click="handleSuspend">暂停</el-button>
           <el-button round size="mini" @click="handleClickReset">重置</el-button>
         </el-form-item>
-        <el-form-item label="温度：">
+        <el-form-item label="温度：" prop="temperature">
           <el-input-number v-model="fire.temperature" :min="1" :max="100" label="温度"></el-input-number>
         </el-form-item>
-        <el-form-item label="风力等级：">
+        <el-form-item label="风力等级：" prop="windGrade">
           <el-input-number v-model="fire.windGrade" :min="0" :max="12" label="风力等级"></el-input-number>
         </el-form-item>
-        <el-form-item label="风向角度：">
+        <el-form-item label="风向角度：" prop="windAngle">
           <el-select v-model="fire.windAngle" placeholder="请选择风向角度">
             <el-option v-for="(item, index) in windAngleList" :key="index" :label="item.label" :value="item.value"></el-option>
           </el-select>
@@ -45,13 +45,13 @@
             <i class="el-icon-caret-bottom"></i>
           </div>
           <div v-if="!showMore">
-            <el-form-item label="a：">
+            <el-form-item label="a：" prop="a">
               <el-input v-model="fire.a"></el-input>
             </el-form-item>
-            <el-form-item label="b：">
+            <el-form-item label="b：" prop="b">
               <el-input v-model="fire.b"></el-input>
             </el-form-item>
-            <el-form-item label="c：">
+            <el-form-item label="c：" prop="c">
               <el-input v-model="fire.c"></el-input>
             </el-form-item>
             <el-form-item>
@@ -93,6 +93,8 @@ const windAngleList = [
 export default {
   name: 'EarthComp',
   data() {
+    // 非负浮点数
+    const pattern = /^\d+(\.\d+)?$/
     return {
       fire: {
         longitude: null,
@@ -107,9 +109,26 @@ export default {
         windGrade: 3,
         // 风向角度：东、南、西、北、东南、东北、西南、西北
         windAngle: 0,
-        // 时间：格式为20210801 23:36
+        // 时间：格式为20210801 23:36:00
         startTime: null,
         currentTime: null
+      },
+      rules: {
+        longitude: [
+          { trigger: 'blur', pattern, message: '请输入正确的经度' }
+        ],
+        latitude: [
+          { trigger: 'blur', pattern, message: '请输入正确的纬度' }
+        ],
+        a: [
+          { trigger: 'blur', pattern, message: '请输入系数a 且需为数值' }
+        ],
+        b: [
+          { trigger: 'blur', pattern, message: '请输入系数b 且需为数值' }
+        ],
+        c: [
+          { trigger: 'blur', pattern, message: '请输入系数c 且需为数值' }
+        ],
       },
       showContinue: false,
       showSuspend: false,
@@ -254,7 +273,7 @@ export default {
         })
     },
     nextFire() {
-      this.fire.currentTime = dayjs(this.fire.currentTime).add(30, 'm')
+      this.fire.currentTime = dayjs(this.fire.currentTime).add(2, 's')
       let params = {
         a: this.fire.a,
         b: this.fire.b,
@@ -262,7 +281,7 @@ export default {
         T: this.fire.temperature,
         W: this.fire.windGrade,
         windAngle: this.fire.windAngle,
-        simulatedtime: this.fire.currentTime.format('YYYY-MM-DD HH:mm:ss')
+        simulatedtime: this.formatTime(this.fire.currentTime)
       }
       nextFire(params)
         .then(res => {
@@ -293,6 +312,11 @@ export default {
         })
     },
     handleClickFire() {
+      this.$refs.fire.validate(valid => {
+        if(!valid) {
+          return
+        }
+      })
       const firstFireTree = this.computeShortDistance()
       if(!firstFireTree) {
         return
@@ -325,8 +349,8 @@ export default {
       var distance = geodesic.surfaceDistance
       return distance
     },
-    flyToGoal(longitude, latitude) {
-      this.theEarth.camera.flyTo([longitude*Math.PI/180, latitude*Math.PI/180, 10], 2000, [0*Math.PI/180, -40*Math.PI/180, 0])
+    flyToGoal(longitude, latitude, height = 2000) {
+      this.theEarth.camera.flyTo([longitude*Math.PI/180, latitude*Math.PI/180, 10], height, [0*Math.PI/180, -40*Math.PI/180, 0])
       // this.theEarth.czm.viewer.setView({
       //   destination: Cesium.Cartesian3.fromDegrees(longitude, latitude, 1000)
       // })
@@ -348,15 +372,15 @@ export default {
       var options = {
         splitList: {
           // green
-          0: 'rgba(0, 77, 0, 0.8)',
+          0: 'rgba(0, 77, 0, 1)',
           // orange
-          1: 'rgba(249, 121, 2, 0.8)',
+          1: 'rgba(249, 121, 2, 1)',
           // blank
-          2: 'rgba(26, 26, 26, 0.8)',
+          2: 'rgba(26, 26, 26, 1)',
           // white
-          8: 'rgba(255, 255, 255, 0.8)',
+          8: 'rgba(255, 255, 255, 1)',
           // red
-          9: 'rgba(204, 0, 0, 0.8)'
+          9: 'rgba(204, 0, 0, 1)'
         },
         draw: 'category'
       }
@@ -416,9 +440,11 @@ export default {
         var latitude = Cesium.Math.toDegrees(position[1])
         that.fire.longitude = longitude
         that.fire.latitude = latitude
+        that.$refs.fire.validate(valid => {})
       }, Cesium.ScreenSpaceEventType.LEFT_CLICK)
 
       this.theEarth = earth
+      this.flyToGoal(114.062930, 22.544420, 5000)
     },
     createTreeModel(tree) {
       var viewer = this.theEarth.czm.viewer
@@ -427,7 +453,7 @@ export default {
       var url = './tree.glb'
       var position = Cesium.Cartesian3.fromDegrees(tree.treeLocationY, tree.treeLocationX, 500)
       var color = tree.status === 0 ? Cesium.Color.CHARTREUSE : tree.status === 1 ? Cesium.Color.RED : Cesium.Color.GREY
-      var heightScale = aNumber.parseInt(tree.treeheight / 2) / 2
+      var heightScale = Number.parseInt(tree.treeheight / 2) / 2
 
       var entity = viewer.entities.add({
         // id: tree.treeid,
@@ -453,12 +479,16 @@ export default {
   }
 }
 </script>
-<style scoped>
+<style>
+.el-form-item__label {
+  color: #cdd3d9 !important;
+  font-size: 12px !important;
+}
 .earth-container {
   width: 100%;
   height: 100%;
 }
-.box {
+.earth-box {
   position: absolute;
   right: 18px;
   top: 18px;
@@ -467,7 +497,7 @@ export default {
   padding: 20px;
   border-radius: 25px;
   min-width: 300px;
-  font-size: 16px;
+  font-size: 14px;
 }
 .tree-color {
   color: #6ec941;
