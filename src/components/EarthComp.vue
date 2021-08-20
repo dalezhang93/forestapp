@@ -3,7 +3,7 @@
  * @Author: sandro0618
  * @Date: 2021-07-20 09:28:02
  * @LastEditors: sandro0618
- * @LastEditTime: 2021-08-20 15:36:15
+ * @LastEditTime: 2021-08-20 16:13:30
 -->
 <template>
   <div>
@@ -93,18 +93,18 @@ const windAngleList = [
   ['西南', -135],
   ['西北', 135]
 ]
-// 定时器获取nextFire接口(下一组燃烧点)的时间间隔，以秒为单位
-const treeFireTimerSeconds = 2
-// 定时器获取fireline接口(火线)的时间间隔，以秒为单位
-const fireLineTimerSeconds = 60
-// 调用nextFire接口时，传递的时间参数增加的步长，以秒为单位。通过修改此变量的值更改燃烧的速度
-const stepSeconds = 2
 export default {
   name: 'EarthComp',
   data() {
     // 非负浮点数
     const pattern = /^\d+(\.\d+)?$/
     return {
+      // 定时器获取nextFire接口(下一组燃烧点)的时间间隔，以秒为单位
+      treeFireTimerSeconds: 2,
+      // 定时器获取fireline接口(火线)的时间间隔，以秒为单位
+      fireLineTimerSeconds: 60,
+      // 调用nextFire接口时，传递的时间参数增加的步长，以秒为单位。通过修改此变量的值更改燃烧的速度
+      stepSeconds: 2,
       fire: {
         longitude: null,
         latitude: null,
@@ -186,13 +186,15 @@ export default {
   methods: {
     isFireLineInterval(end) {
       const interval = dayjs(end).valueOf() - this.fire.startTime.valueOf()
-      return interval % (fireLineTimerSeconds * 1000) === 0
+      return interval % (this.fireLineTimerSeconds * 1000) === 0
     },
     handleSuspend() {
       this.showContinue = true
       this.showSuspend = false
       clearInterval(this.timer)
       this.timer = null
+      clearInterval(this.fireLineTimer)
+      this.fireLineTimer = null
     },
     handleContinue() {
       this.showContinue = false
@@ -227,13 +229,13 @@ export default {
       const that = this
       this.timer = setInterval(() => {
         that.nextFire()
-      }, treeFireTimerSeconds*1000)
+      }, this.treeFireTimerSeconds*1000)
     },
     getFireLineTimer() {
       const that = this
       this.fireLineTimer = setInterval(() => {
         that.fireLine()
-      }, fireLineTimerSeconds*1000)
+      }, this.fireLineTimerSeconds*1000)
     },
     fireLine() {
       fireLine()
@@ -321,7 +323,7 @@ export default {
         })
     },
     nextFire() {
-      this.fire.currentTime = dayjs(this.fire.currentTime).add(stepSeconds, 's')
+      this.fire.currentTime = dayjs(this.fire.currentTime).add(this.stepSeconds, 's')
       let params = {
         a: this.fire.a,
         b: this.fire.b,
