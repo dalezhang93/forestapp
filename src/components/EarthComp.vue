@@ -3,7 +3,7 @@
  * @Author: sandro0618
  * @Date: 2021-07-20 09:28:02
  * @LastEditors: sandro0618
- * @LastEditTime: 2021-08-20 15:25:12
+ * @LastEditTime: 2021-08-20 15:36:15
 -->
 <template>
   <div>
@@ -96,7 +96,7 @@ const windAngleList = [
 // 定时器获取nextFire接口(下一组燃烧点)的时间间隔，以秒为单位
 const treeFireTimerSeconds = 2
 // 定时器获取fireline接口(火线)的时间间隔，以秒为单位
-const fireLineTimerSeconds = 20
+const fireLineTimerSeconds = 60
 // 调用nextFire接口时，传递的时间参数增加的步长，以秒为单位。通过修改此变量的值更改燃烧的速度
 const stepSeconds = 2
 export default {
@@ -427,7 +427,8 @@ export default {
           // green
           0: 'rgba(0, 77, 0, 1)',
           // orange
-          1: 'rgba(249, 121, 2, 1)',
+          // 1: 'rgba(249, 121, 2, 1)',
+          1: 'rgba(204, 0, 0, 1)',
           // blank
           2: 'rgba(26, 26, 26, 1)',
           // white
