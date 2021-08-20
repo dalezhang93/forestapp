@@ -3,7 +3,7 @@
  * @Author: sandro0618
  * @Date: 2021-07-20 09:28:02
  * @LastEditors: sandro0618
- * @LastEditTime: 2021-08-16 19:21:38
+ * @LastEditTime: 2021-08-20 14:27:17
 -->
 <template>
   <div>
@@ -15,6 +15,9 @@
         </el-form-item>
         <el-form-item label="纬度：" prop="latitude">
           <el-input v-model="fire.latitude"></el-input>
+        </el-form-item>
+        <el-form-item label="treeid：" prop="treeid">
+          <span>{{ fire.treeid }}</span>
         </el-form-item>
         <el-form-item>
           <el-button round type="primary" size="mini" @click="handleClickFire">起火</el-button>
@@ -74,7 +77,7 @@
 /* eslint-disable no-console */
 /* eslint-disable no-debugger */
 import dayjs from 'dayjs'
-import { getAllFires, getAllFiresLocal, firesInit, nextFire, nextFireLocal, startFire, resetFire } from '@/api/forest'
+import { getAllFires, getAllFiresLocal, firesInit, nextFire, nextFireLocal, startFire, resetFire, fireLine } from '@/api/forest'
 const statusColor = new Map([
   [0, '#67c23a'],
   [1, '#c92525'],
@@ -99,6 +102,7 @@ export default {
       fire: {
         longitude: null,
         latitude: null,
+        treeid: '',
         // R0 = aT + bW - c
         a: 0.053,
         b: 0.048,
@@ -138,6 +142,7 @@ export default {
       theEarth: undefined,
       treeData: [],
       timer: null,
+      fireLineTimer: null,
       windAngleList: [],
       lastFiredTreeList: null,
       lastFiredTime: null
@@ -184,6 +189,8 @@ export default {
       this.showSuspend = true
       clearInterval(this.timer)
       this.treeFireTimer()
+      clearInterval(this.fireLineTimer)
+      this.getFireLineTimer()
     },
     handleClickReset() {
       this.showStartBtn = true
@@ -204,6 +211,27 @@ export default {
       this.timer = setInterval(() => {
         that.nextFire()
       }, 2000)
+    },
+    getFireLineTimer() {
+      const that = this
+      this.fireLineTimer = setInterval(() => {
+        that.fireLine()
+      }, 20000)
+    },
+    fireLine() {
+      fireLine()
+        .then(res => {
+          if(res.data.code === 200) {
+            const data = res.data.data
+            data.forEach(item => {
+              item.status = 8
+            })
+            this.createTree(data)
+          }
+        })
+        .catch(err => {
+          console.log(err)
+        })
     },
     getAllFires() {
       getAllFires()
@@ -288,7 +316,8 @@ export default {
           if(res.data.code === 200) {
             const data = res.data.data
             if(this.lastFiredTreeList) {
-              const flag = this.isHourInterval(this.lastFiredTime)
+              // const flag = this.isHourInterval(this.lastFiredTime)
+              const flag = false
               if(flag) {
                 this.lastFiredTreeList.forEach(item => {
                   item.status = 8
@@ -323,10 +352,11 @@ export default {
       }
       this.showStartBtn = false
       this.showSuspend = true
-      firstFireTree.status = 1
+      firstFireTree.status = 9
       this.createTree([firstFireTree])
       this.startFire(firstFireTree.treeid)
       this.treeFireTimer()
+      this.getFireLineTimer()
     },
     computeShortDistance() {
       var start = Cesium.Cartographic.fromDegrees(this.fire.longitude, this.fire.latitude)
@@ -440,6 +470,8 @@ export default {
         var latitude = Cesium.Math.toDegrees(position[1])
         that.fire.longitude = longitude
         that.fire.latitude = latitude
+        var minDisTree = that.computeShortDistance()
+        that.fire.treeid = minDisTree && minDisTree.treeid
         that.$refs.fire.validate(valid => {})
       }, Cesium.ScreenSpaceEventType.LEFT_CLICK)
 

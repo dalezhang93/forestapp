@@ -3,7 +3,7 @@
  * @Author: sandro0618
  * @Date: 2021-07-13 17:10:53
  * @LastEditors: sandro0618
- * @LastEditTime: 2021-08-03 09:46:48
+ * @LastEditTime: 2021-08-20 14:02:13
  */
 import request from '@/utils/request'
 
@@ -69,5 +69,13 @@ export function resetFire(data) {
       'Content-Type': 'application/json; charset=utf-8'
     },
     data
+  })
+}
+
+export function fireLine(params) {
+  return request({
+    url: `/api/fires/fireline`,
+    method: 'GET',
+    params
   })
 }
