@@ -3,7 +3,7 @@
  * @Author: sandro0618
  * @Date: 2021-07-20 09:28:02
  * @LastEditors: sandro0618
- * @LastEditTime: 2021-08-20 14:27:17
+ * @LastEditTime: 2021-08-20 15:25:12
 -->
 <template>
   <div>
@@ -93,6 +93,12 @@ const windAngleList = [
   ['西南', -135],
   ['西北', 135]
 ]
+// 定时器获取nextFire接口(下一组燃烧点)的时间间隔，以秒为单位
+const treeFireTimerSeconds = 2
+// 定时器获取fireline接口(火线)的时间间隔，以秒为单位
+const fireLineTimerSeconds = 20
+// 调用nextFire接口时，传递的时间参数增加的步长，以秒为单位。通过修改此变量的值更改燃烧的速度
+const stepSeconds = 2
 export default {
   name: 'EarthComp',
   data() {
@@ -171,12 +177,16 @@ export default {
     }
   },
   beforeDestroy() {
+    clearInterval(this.timer)
+    this.timer = null
+    clearInterval(this.fireLineTimer)
+    this.fireLineTimer = null
     this.theEarth = this.theEarth && this.theEarth.destroy()
   },
   methods: {
-    isHourInterval(end) {
+    isFireLineInterval(end) {
       const interval = dayjs(end).valueOf() - this.fire.startTime.valueOf()
-      return interval % (3600 * 1000) === 0
+      return interval % (fireLineTimerSeconds * 1000) === 0
     },
     handleSuspend() {
       this.showContinue = true
@@ -188,15 +198,22 @@ export default {
       this.showContinue = false
       this.showSuspend = true
       clearInterval(this.timer)
+      this.timer = null
       this.treeFireTimer()
       clearInterval(this.fireLineTimer)
+      this.fireLineTimer = null
       this.getFireLineTimer()
     },
     handleClickReset() {
       this.showStartBtn = true
       this.showContinue = false
       this.showSuspend = false
+      clearInterval(this.timer)
+      this.timer = null
+      clearInterval(this.fireLineTimer)
+      this.fireLineTimer = null
       this.resetFire()
+      // this.createTree(this.treeData)
     },
     getWindAngleList() {
       this.windAngleList = windAngleList.map(item => {
@@ -210,19 +227,22 @@ export default {
       const that = this
       this.timer = setInterval(() => {
         that.nextFire()
-      }, 2000)
+      }, treeFireTimerSeconds*1000)
     },
     getFireLineTimer() {
       const that = this
       this.fireLineTimer = setInterval(() => {
         that.fireLine()
-      }, 20000)
+      }, fireLineTimerSeconds*1000)
     },
     fireLine() {
       fireLine()
         .then(res => {
           if(res.data.code === 200) {
             const data = res.data.data
+            if(!data || !data.length) {
+              return
+            }
             data.forEach(item => {
               item.status = 8
             })
@@ -267,13 +287,13 @@ export default {
         })
     },
     resetFire() {
-      clearInterval(this.timer)
-      this.timer = null
-      // this.createTree(this.treeData)
       resetFire()
         .then(res => {
           if(res.data.code === 200) {
-            console.log(res.data.data)
+            const data = res.data.data
+            if(!data || !data.length) {
+              return
+            }
             this.createTree(res.data.data)
           }
         })
@@ -301,7 +321,7 @@ export default {
         })
     },
     nextFire() {
-      this.fire.currentTime = dayjs(this.fire.currentTime).add(2, 's')
+      this.fire.currentTime = dayjs(this.fire.currentTime).add(stepSeconds, 's')
       let params = {
         a: this.fire.a,
         b: this.fire.b,
@@ -315,8 +335,11 @@ export default {
         .then(res => {
           if(res.data.code === 200) {
             const data = res.data.data
+            if(!data || !data.length) {
+              return
+            }
             if(this.lastFiredTreeList) {
-              // const flag = this.isHourInterval(this.lastFiredTime)
+              // const flag = this.isFireLineInterval(this.lastFiredTime)
               const flag = false
               if(flag) {
                 this.lastFiredTreeList.forEach(item => {
