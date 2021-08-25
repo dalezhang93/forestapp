@@ -3,70 +3,119 @@
  * @Author: sandro0618
  * @Date: 2021-07-20 09:28:02
  * @LastEditors: sandro0618
- * @LastEditTime: 2021-08-20 16:13:30
+ * @LastEditTime: 2021-08-25 17:24:57
 -->
 <template>
   <div>
     <div ref="earthContainer" class="earth-container"></div>
     <div class="earth-box">
-      <el-form ref="fire" :model="fire" :rules="rules" label-position="right" size="mini" label-width="100px">
-        <el-form-item label="经度：" prop="longitude">
-          <el-input v-model="fire.longitude"></el-input>
-        </el-form-item>
-        <el-form-item label="纬度：" prop="latitude">
-          <el-input v-model="fire.latitude"></el-input>
-        </el-form-item>
-        <el-form-item label="treeid：" prop="treeid">
-          <span>{{ fire.treeid }}</span>
-        </el-form-item>
-        <el-form-item>
-          <el-button round type="primary" size="mini" @click="handleClickFire">起火</el-button>
-          <el-button v-if="showContinue" round size="mini" @click="handleContinue">继续</el-button>
-          <el-button v-if="showSuspend" round size="mini" @click="handleSuspend">暂停</el-button>
-          <el-button round size="mini" @click="handleClickReset">重置</el-button>
-        </el-form-item>
-        <el-form-item label="温度：" prop="temperature">
-          <el-input-number v-model="fire.temperature" :min="1" :max="100" label="温度"></el-input-number>
-        </el-form-item>
-        <el-form-item label="风力等级：" prop="windGrade">
-          <el-input-number v-model="fire.windGrade" :min="0" :max="12" label="风力等级"></el-input-number>
-        </el-form-item>
-        <el-form-item label="风向角度：" prop="windAngle">
-          <el-select v-model="fire.windAngle" placeholder="请选择风向角度">
-            <el-option v-for="(item, index) in windAngleList" :key="index" :label="item.label" :value="item.value"></el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item label="开始时间：">
-          <span>{{ formatTime(fire.startTime) }}</span>
-        </el-form-item>
-        <el-form-item label="当前时间：">
-          <span>{{ formatTime(fire.currentTime) }}</span>
-        </el-form-item>
-        <div>
-          <div v-if="showMore" @click="showMore = false">
-            <span style="cursor: default;">展开</span>
-            <i class="el-icon-caret-bottom"></i>
-          </div>
-          <div v-if="!showMore">
-            <el-form-item label="a：" prop="a">
-              <el-input v-model="fire.a"></el-input>
-            </el-form-item>
-            <el-form-item label="b：" prop="b">
-              <el-input v-model="fire.b"></el-input>
-            </el-form-item>
-            <el-form-item label="c：" prop="c">
-              <el-input v-model="fire.c"></el-input>
-            </el-form-item>
-            <el-form-item>
-              <el-button round type="primary" size="mini" @click="firesInit">初始化</el-button>
-            </el-form-item>
-          </div>
-          <div v-if="!showMore" @click="showMore = true">
-            <span style="cursor: default;">收起</span>
-            <i class="el-icon-caret-top"></i>
-          </div>
+      <el-button type="primary" @click="dialogFormVisible = !dialogFormVisible" size="mini">参数调整框</el-button>
+    </div>
+    <div class="dragg-wrapper" v-dialogDrag v-if="dialogFormVisible">
+      <div class="dragg-container">
+        <div class="dragg-header">
+          <span>蔓延参数调整</span>
+          <!-- <el-button style="float: right; padding: 3px 0" type="text" @click="dialogFormVisible = false">
+            <i class="el-icon-close"></i>
+          </el-button>-->
         </div>
-      </el-form>
+        <el-form ref="fire" :model="fire" :rules="rules" label-position="right" size="mini" label-width="100px">
+          <el-form-item label="经度：" prop="longitude">
+            <el-col :span="20">
+              <el-input v-model="fire.longitude"></el-input>
+            </el-col>
+          </el-form-item>
+          <el-form-item label="纬度：" prop="latitude">
+            <el-col :span="20">
+              <el-input v-model="fire.latitude"></el-input>
+            </el-col>
+          </el-form-item>
+          <el-form-item label="treeid：" prop="treeid">
+            <el-col :span="20">
+              <span>{{ fire.treeid }}</span>
+            </el-col>
+          </el-form-item>
+          <el-form-item>
+            <el-col :span="20">
+              <el-button round type="primary" size="mini" @click="handleClickFire">起火</el-button>
+              <el-button v-if="showContinue" round size="mini" @click="handleContinue">继续</el-button>
+              <el-button v-if="showSuspend" round size="mini" @click="handleSuspend">暂停</el-button>
+              <el-button round size="mini" @click="handleClickReset">重置</el-button>
+            </el-col>
+          </el-form-item>
+          <el-form-item label="温度：" prop="temperature">
+            <el-col :span="20">
+              <el-input-number v-model="fire.temperature" :min="1" :max="100" label="温度"></el-input-number>
+            </el-col>
+          </el-form-item>
+          <el-form-item label="风力等级：" prop="windGrade">
+            <el-col :span="20">
+              <el-input-number v-model="fire.windGrade" :min="0" :max="12" label="风力等级"></el-input-number>
+            </el-col>
+          </el-form-item>
+          <el-form-item label="风向角度：" prop="windAngle">
+            <el-col :span="20">
+              <el-select v-model="fire.windAngle" placeholder="请选择风向角度">
+                <el-option v-for="(item, index) in windAngleList" :key="index" :label="item.label" :value="item.value"></el-option>
+              </el-select>
+            </el-col>
+          </el-form-item>
+          <el-form-item label="开始时间：">
+            <el-col :span="20">
+              <span>{{ formatTime(fire.startTime) }}</span>
+            </el-col>
+          </el-form-item>
+          <el-form-item label="当前时间：">
+            <el-col :span="20">
+              <span>{{ formatTime(fire.currentTime) }}</span>
+            </el-col>
+          </el-form-item>
+          <div>
+            <div v-if="showMore" @click="showMore = false">
+              <span style="cursor: default;">展开</span>
+              <i class="el-icon-caret-bottom"></i>
+            </div>
+            <div v-if="!showMore">
+              <el-form-item>
+                <el-col :span="20">
+                  <el-button round type="primary" size="mini" @click="firesInit">初始化</el-button>
+                </el-col>
+              </el-form-item>
+              <el-form-item label="湿度：" prop="humidity">
+                <el-col :span="20">
+                  <el-input v-model="fire.humidity" :min="0" :max="12" label="湿度"></el-input>
+                </el-col>
+              </el-form-item>
+              <el-form-item label="植被类型：" prop="vegetationType">
+                <el-col :span="20">
+                  <el-select v-model="fire.vegetationType" placeholder="请选择植被类型">
+                    <el-option v-for="(item, index) in vegetationTypeList" :key="index" :label="item.label" :value="item.value"></el-option>
+                  </el-select>
+                </el-col>
+              </el-form-item>
+              <el-form-item label="系数 a：" prop="a">
+                <el-col :span="20">
+                  <el-input v-model="fire.a"></el-input>
+                </el-col>
+              </el-form-item>
+              <el-form-item label="系数 b：" prop="b">
+                <el-col :span="20">
+                  <el-input v-model="fire.b"></el-input>
+                </el-col>
+              </el-form-item>
+              <el-form-item label="系数 c：" prop="c">
+                <el-col :span="20">
+                  <el-input v-model="fire.c"></el-input>
+                </el-col>
+              </el-form-item>
+            </div>
+            <div v-if="!showMore" @click="showMore = true">
+              <span style="cursor: default;">收起</span>
+              <i class="el-icon-caret-top"></i>
+            </div>
+          </div>
+        </el-form>
+      </div>
     </div>
   </div>
 </template>
@@ -77,6 +126,9 @@
 /* eslint-disable no-console */
 /* eslint-disable no-debugger */
 import dayjs from 'dayjs'
+// import draggable from 'vuedraggable'
+// import VueDraggableResizable from 'vue-draggable-resizable'
+// import 'vue-draggable-resizable/dist/VueDraggableResizable.css'
 import { getAllFires, getAllFiresLocal, firesInit, nextFire, nextFireLocal, startFire, resetFire, fireLine } from '@/api/forest'
 const statusColor = new Map([
   [0, '#67c23a'],
@@ -93,8 +145,23 @@ const windAngleList = [
   ['西南', 45],
   ['西北', -45]
 ]
+const vegetationTypeList = [
+  ['1', '水系'],
+  ['2', '房屋'],
+  ['3', '裸地'],
+  ['4', '耕地'],
+  ['5', '阔叶林'],
+  ['6', '混交林'],
+  ['7', '灌木丛'],
+  ['8', '草地'],
+  ['9', '针叶林']
+]
 export default {
   name: 'EarthComp',
+  components: {
+    // draggable,
+    // VueDraggableResizable
+  },
   data() {
     // 非负浮点数
     const pattern = /^\d+(\.\d+)?$/
@@ -113,6 +180,10 @@ export default {
         a: 0.053,
         b: 0.048,
         c: 0.275,
+        // 湿度
+        humidity: '',
+        // 植被类型
+        vegetationType: '',
         // 温度：摄氏度
         temperature: 28,
         // 风力等级：1-12级
@@ -142,7 +213,7 @@ export default {
       },
       showContinue: false,
       showSuspend: false,
-      showStartBtn: true,
+      beReset: false,
       showMore: true,
       // 注意：Earth和Cesium的相关变量放在vue中，必须使用下划线作为前缀！
       theEarth: undefined,
@@ -150,12 +221,29 @@ export default {
       timer: null,
       fireLineTimer: null,
       windAngleList: [],
+      vegetationTypeList: [],
       lastFiredTreeList: null,
-      lastFiredTime: null
+      lastFiredTime: null,
+      treeColor: new Map([
+        // green
+        [0, Cesium.Color.CHARTREUSE],
+        // orange
+        // [1, Cesium.Color.ORANGE],
+        [1, Cesium.Color.RED],
+        // blank
+        [2, Cesium.Color.BLACK],
+        // white
+        [8, Cesium.Color.WHITE],
+        // red
+        [9, Cesium.Color.RED],
+        [10, Cesium.Color.ORANGE],
+      ]),
+      dialogFormVisible: false
     };
   },
   created() {
     this.getWindAngleList()
+    this.getVegetationTypeList()
   },
   mounted() {
     // this.firesInit()
@@ -207,21 +295,31 @@ export default {
       this.getFireLineTimer()
     },
     handleClickReset() {
-      this.showStartBtn = true
+      this.beReset = true
       this.showContinue = false
       this.showSuspend = false
       clearInterval(this.timer)
       this.timer = null
       clearInterval(this.fireLineTimer)
       this.fireLineTimer = null
-      this.resetFire()
-      // this.createTree(this.treeData)
+      var viewer = this.theEarth.czm.viewer
+      viewer.scene.primitives.removeAll()
+      this.createStickTrees(this.treeData)
+      // this.resetFire()
     },
     getWindAngleList() {
       this.windAngleList = windAngleList.map(item => {
         return {
           label: item[0],
           value: item[1]
+        }
+      })
+    },
+    getVegetationTypeList() {
+      this.vegetationTypeList = vegetationTypeList.map(item => {
+        return {
+          label: item[1],
+          value: item[0]
         }
       })
     },
@@ -248,7 +346,8 @@ export default {
             data.forEach(item => {
               item.status = 8
             })
-            this.createTree(data)
+            this.createStickTrees(data)
+            this.drawFireLine(data)
           }
         })
         .catch(err => {
@@ -265,7 +364,9 @@ export default {
           }
         })
         .then(() => {
-          this.createTree(this.treeData)
+          this.createStickTrees(this.treeData)
+          // 划线test
+          // this.drawFireLine(this.treeData)
         })
         // .then(() => {
         //   this.createModel(this.treeData)
@@ -296,7 +397,7 @@ export default {
             if(!data || !data.length) {
               return
             }
-            this.createTree(res.data.data)
+            this.createStickTrees(res.data.data)
           }
         })
         .catch(err => {
@@ -352,9 +453,9 @@ export default {
                   item.status = 9
                 })
               }
-              this.createTree(this.lastFiredTreeList)
+              this.createStickTrees(this.lastFiredTreeList)
             }
-            this.createTree(data)
+            this.createStickTrees(data)
             this.lastFiredTreeList = data
             this.lastFiredTime = this.fire.currentTime
             // this.createModel(data)
@@ -375,11 +476,12 @@ export default {
       if(!firstFireTree) {
         return
       }
-      this.showStartBtn = false
+      this.beReset = false
       this.showSuspend = true
-      firstFireTree.status = 9
-      this.createTree([firstFireTree])
-      this.startFire(firstFireTree.treeid)
+      const newFirstFireTree = JSON.parse(JSON.stringify(firstFireTree))
+      newFirstFireTree.status = 10
+      this.createStickTrees([newFirstFireTree])
+      this.startFire(newFirstFireTree.treeid)
       this.treeFireTimer()
       this.getFireLineTimer()
     },
@@ -410,7 +512,7 @@ export default {
       //   destination: Cesium.Cartesian3.fromDegrees(longitude, latitude, 1000)
       // })
     },
-    createTree(treeDatas) {
+    createMapvTree(treeDatas) {
       var viewer = this.theEarth.czm.viewer
       const tree0X = treeDatas[0].treeLocationX
       const tree0Y = treeDatas[0].treeLocationY
@@ -442,6 +544,58 @@ export default {
       }
       // this.flyToGoal(tree0Y, tree0X)
       var mapvLayer = XE.mixins.mapVLayer(viewer, dataSet, options)
+    },
+    drawMapvFireLine(treeDatas) {
+      var viewer = this.theEarth.czm.viewer
+      var mapvData = []
+      for (let index = 0; index < treeDatas.length; index++) {
+        const tree1X = treeDatas[index].treeLocationX
+        const tree1Y = treeDatas[index].treeLocationY
+        var tree2X = treeDatas[index].treeLocationX
+        var tree2Y = treeDatas[index].treeLocationY
+        if(index === treeDatas.length - 1) {
+          tree2X = treeDatas[0].treeLocationX
+          tree2Y = treeDatas[0].treeLocationY
+        }else {
+          tree2X = treeDatas[index+1].treeLocationX
+          tree2Y = treeDatas[index+1].treeLocationY
+        }
+        mapvData.push({
+          geometry: {
+            type: 'LineString',
+            coordinates: [[tree1Y, tree1X],[tree2Y, tree2X]]
+          }
+        })
+      }
+      var dataSet = new mapv.DataSet(mapvData)
+      var options = {
+        strokeStyle: 'rgba(255, 255, 255, 1)',
+        lineWidth: 2,
+        draw: 'simple'
+      }
+      var mapvLayer = XE.mixins.mapVLayer(viewer, dataSet, options)
+    },
+    drawFireLine(treeDatas) {
+      var viewer = this.theEarth.czm.viewer
+      var geoData = treeDatas.map(item => {
+        return Cesium.Cartesian3.fromDegrees(item.treeLocationY, item.treeLocationX, item.treeLocationNz)
+      })
+      var primitive = new Cesium.Primitive({
+        geometryInstances: new Cesium.GeometryInstance({
+          geometry: new Cesium.PolylineGeometry({
+            positions: geoData,
+            width: 2.0,
+            vertexFormat : Cesium.PolylineColorAppearance.VERTEX_FORMAT
+          }),
+          attributes: {
+            color: Cesium.ColorGeometryInstanceAttribute.fromColor(Cesium.Color.WHITE)
+          }
+        }),
+        appearance : new Cesium.PolylineColorAppearance({
+          translucent : false
+        })
+      })
+      viewer.scene.primitives.add(primitive)
     },
     createEarth() {
       var earth = new XE.Earth(this.$refs.earthContainer)
@@ -509,8 +663,8 @@ export default {
       // viewer.entities.removeAll()
 
       var url = './tree.glb'
-      var position = Cesium.Cartesian3.fromDegrees(tree.treeLocationY, tree.treeLocationX, 500)
-      var color = tree.status === 0 ? Cesium.Color.CHARTREUSE : tree.status === 1 ? Cesium.Color.RED : Cesium.Color.GREY
+      var position = Cesium.Cartesian3.fromDegrees(tree.treeLocationY, tree.treeLocationX, tree.treeLocationNz)
+      var color = this.treeColor.get(tree.status)
       var heightScale = Number.parseInt(tree.treeheight / 2) / 2
 
       var entity = viewer.entities.add({
@@ -524,22 +678,62 @@ export default {
           maximumScale: 20000,
           id: tree.treeid,
           color: color
-        },
+        }
+        // heightReference: Cesium.HeightReference.CLAMP_TO_GROUND
       })
       
-      // viewer.trackedEntity = entity
+      viewer.trackedEntity = entity
     },
     createModel(treeDatas) {
       treeDatas = treeDatas.map(elem => {
         this.createTreeModel(elem)
+      })
+    },
+    createStickTrees(treeDatas) {
+      // 暂停或重置时，接口返回数据延迟不再渲染
+      // if(this.beReset || this.showSuspend) {
+      //   return
+      // }
+      
+      // var viewer = this.theEarth.czm.viewer
+      // heading = Cesium.defaultValue(heading, 0.0);
+      // pitch = Cesium.defaultValue(pitch, 0.0);
+      // roll = Cesium.defaultValue(roll, 0.0);
+      // var instances = treeDatas = treeDatas.map(tree => {
+      //   var position = Cesium.Cartesian3.fromDegrees(tree.treeLocationY, tree.treeLocationX, tree.treeLocationNz)
+      //   var heightScale = Number.parseInt(tree.treeheight / 2) / 2
+      //   var modelMatrix = Cesium.Transforms.headingPitchRollToFixedFrame(position, new Cesium.HeadingPitchRoll(heading, pitch, roll))
+      //   Cesium.Matrix4.multiplyByUniformScale(modelMatrix, heightScale, modelMatrix)
+      //   return { modelMatrix: modelMatrix }
+      // })
+      // const url = './my.glb'
+      // viewer.scene.primitives.removeAll()
+      // var primitive = new Cesium.ModelInstanceCollection({
+      //   url: url,
+      //   instances: instances
+      // })
+      // viewer.scene.primitives.add(primitive)
+
+      var viewer = this.theEarth.czm.viewer
+      var points = viewer.scene.primitives.add(new Cesium.PointPrimitiveCollection())
+      treeDatas = treeDatas.forEach(tree => {
+        var position = Cesium.Cartesian3.fromDegrees(tree.treeLocationY, tree.treeLocationX, tree.treeLocationNz)
+        var color = this.treeColor.get(tree.status)
+        points.add({
+          position,
+          color
+        })
       })
     }
   }
 }
 </script>
 <style>
+.el-col .el-select {
+  width: 100%;
+}
 .el-form-item__label {
-  color: #cdd3d9 !important;
+  /* color: #cdd3d9 !important; */
   font-size: 12px !important;
 }
 .earth-container {
@@ -548,14 +742,34 @@ export default {
 }
 .earth-box {
   position: absolute;
-  right: 18px;
-  top: 18px;
+  left: 20px;
+  top: 20px;
   color: white;
-  background: rgba(0, 0, 0, 0.6);
+  /* background: rgba(0, 0, 0, 0.6);
   padding: 20px;
   border-radius: 25px;
-  min-width: 300px;
+  min-width: 300px; */
   font-size: 14px;
+}
+.dragg-wrapper::after {
+  content: "";
+  clear: both;
+  display: block;
+  overflow: hidden;
+  visibility: hidden;
+}
+.dragg-container {
+  position: absolute;
+  left: 20px;
+  top: 60px;
+  width: 20%;
+  padding: 0 0 20px;
+  border-radius: 6px;
+  background: #fff;
+  font-size: 14px;
+}
+.dragg-header {
+  padding: 20px 0;
 }
 .tree-color {
   color: #6ec941;
