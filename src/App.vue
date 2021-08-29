@@ -1,10 +1,3 @@
-<!--
- * @Descripttion: 
- * @Author: sandro0618
- * @Date: 2021-07-30 15:19:50
- * @LastEditors: sandro0618
- * @LastEditTime: 2021-08-03 09:47:30
--->
 <template>
   <div id="app" style="width: 100%; height: 100%; background: grey; position: relative;">
     <earth-comp></earth-comp>

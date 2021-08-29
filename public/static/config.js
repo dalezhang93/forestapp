@@ -1,0 +1,3 @@
+window.forestFire = {
+  showAdminSetting: true
+}

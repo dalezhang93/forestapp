@@ -1,10 +1,3 @@
-/*
- * @Descripttion:
- * @Author: sandro0618
- * @Date: 2021-07-13 17:10:53
- * @LastEditors: sandro0618
- * @LastEditTime: 2021-08-25 11:48:50
- */
 import request from '@/utils/request'
 
 
