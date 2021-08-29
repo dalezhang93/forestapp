@@ -1,10 +1,3 @@
-/*
- * @Descripttion: 
- * @Author: sandro0618
- * @Date: 2021-07-20 09:28:02
- * @LastEditors: sandro0618
- * @LastEditTime: 2021-08-24 20:13:19
- */
 import Vue from 'vue'
 import ElementUI from 'element-ui';
 import 'element-ui/lib/theme-chalk/index.css'

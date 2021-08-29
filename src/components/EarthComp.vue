@@ -1,21 +1,14 @@
-<!--
- * @Descripttion: 
- * @Author: sandro0618
- * @Date: 2021-07-20 09:28:02
- * @LastEditors: sandro0618
- * @LastEditTime: 2021-08-25 17:24:57
--->
 <template>
   <div>
     <div ref="earthContainer" class="earth-container"></div>
     <div class="earth-box">
-      <el-button type="primary" @click="dialogFormVisible = !dialogFormVisible" size="mini">参数调整框</el-button>
+      <el-button type="primary" v-if="showParamBox" @click="paramBoxVisible = !paramBoxVisible" size="mini">参数调整框</el-button>
     </div>
-    <div class="dragg-wrapper" v-dialogDrag v-if="dialogFormVisible">
+    <div class="dragg-wrapper" v-dialogDrag v-if="paramBoxVisible">
       <div class="dragg-container">
         <div class="dragg-header">
           <span>蔓延参数调整</span>
-          <!-- <el-button style="float: right; padding: 3px 0" type="text" @click="dialogFormVisible = false">
+          <!-- <el-button style="float: right; padding: 3px 0" type="text" @click="paramBoxVisible = false">
             <i class="el-icon-close"></i>
           </el-button>-->
         </div>
@@ -108,6 +101,11 @@
                   <el-input v-model="fire.c"></el-input>
                 </el-col>
               </el-form-item>
+              <el-form-item label="比例系数：" prop="ratio">
+                <el-col :span="20">
+                  <el-input v-model="fire.ratio"></el-input>
+                </el-col>
+              </el-form-item>
             </div>
             <div v-if="!showMore" @click="showMore = true">
               <span style="cursor: default;">收起</span>
@@ -184,6 +182,8 @@ export default {
         humidity: '',
         // 植被类型
         vegetationType: '',
+        // 自定义比例系数
+        ratio: '',
         // 温度：摄氏度
         temperature: 28,
         // 风力等级：1-12级
@@ -228,18 +228,17 @@ export default {
         // green
         [0, Cesium.Color.CHARTREUSE],
         // orange
-        // [1, Cesium.Color.ORANGE],
         [1, Cesium.Color.RED],
         // blank
         [2, Cesium.Color.BLACK],
         // white
         [8, Cesium.Color.WHITE],
-        // red
-        [9, Cesium.Color.RED],
-        [10, Cesium.Color.ORANGE],
+        // flame red
+        [10, Cesium.Color.DARKORANGE],
       ]),
-      dialogFormVisible: false
-    };
+      paramBoxVisible: false,
+      showParamBox: window.forestFire.showAdminSetting
+    }
   },
   created() {
     this.getWindAngleList()
@@ -272,6 +271,15 @@ export default {
     this.theEarth = this.theEarth && this.theEarth.destroy()
   },
   methods: {
+    createFlame(lng, lat, height) {
+      var p = new XE.Obj.CustomGroundRectangle(this.theEarth)
+      p.position = [lng, lat, height]
+      p.width = 100
+      p.height= 100
+      p.canvasWidth = 100
+      p.canvasHeight = 100
+      p.imageUrl = './fire.png'
+    },
     isFireLineInterval(end) {
       const interval = dayjs(end).valueOf() - this.fire.startTime.valueOf()
       return interval % (this.fireLineTimerSeconds * 1000) === 0
@@ -285,6 +293,7 @@ export default {
       this.fireLineTimer = null
     },
     handleContinue() {
+      this.beReset = false
       this.showContinue = false
       this.showSuspend = true
       clearInterval(this.timer)
@@ -304,7 +313,7 @@ export default {
       this.fireLineTimer = null
       var viewer = this.theEarth.czm.viewer
       viewer.scene.primitives.removeAll()
-      this.createStickTrees(this.treeData)
+      this.createStickTrees(this.treeData, false)
       // this.resetFire()
     },
     getWindAngleList() {
@@ -369,7 +378,7 @@ export default {
           // this.drawFireLine(this.treeData)
         })
         // .then(() => {
-        //   this.createModel(this.treeData)
+        //   this.createModelTrees(this.treeData)
         // })
         .catch(err => {
           console.log(err)
@@ -448,17 +457,13 @@ export default {
                 this.lastFiredTreeList.forEach(item => {
                   item.status = 8
                 })
-              }else {
-                this.lastFiredTreeList.forEach(item => {
-                  item.status = 9
-                })
               }
               this.createStickTrees(this.lastFiredTreeList)
             }
             this.createStickTrees(data)
             this.lastFiredTreeList = data
             this.lastFiredTime = this.fire.currentTime
-            // this.createModel(data)
+            // this.createModelTrees(data)
             // this.flyToGoal(data[0].treeLocationY, data[0].treeLocationX)
           }
         })
@@ -481,6 +486,7 @@ export default {
       const newFirstFireTree = JSON.parse(JSON.stringify(firstFireTree))
       newFirstFireTree.status = 10
       this.createStickTrees([newFirstFireTree])
+      // this.createFlame(newFirstFireTree.treeLocationY, newFirstFireTree.treeLocationX, newFirstFireTree.treeLocationNz)
       this.startFire(newFirstFireTree.treeid)
       this.treeFireTimer()
       this.getFireLineTimer()
@@ -530,15 +536,14 @@ export default {
         splitList: {
           // green
           0: 'rgba(0, 77, 0, 1)',
-          // orange
-          // 1: 'rgba(249, 121, 2, 1)',
+          // red
           1: 'rgba(204, 0, 0, 1)',
           // blank
           2: 'rgba(26, 26, 26, 1)',
           // white
           8: 'rgba(255, 255, 255, 1)',
           // red
-          9: 'rgba(204, 0, 0, 1)'
+          10: 'rgba(204, 0, 0, 1)'
         },
         draw: 'category'
       }
@@ -577,6 +582,7 @@ export default {
     },
     drawFireLine(treeDatas) {
       var viewer = this.theEarth.czm.viewer
+      var that = this
       var geoData = treeDatas.map(item => {
         return Cesium.Cartesian3.fromDegrees(item.treeLocationY, item.treeLocationX, item.treeLocationNz)
       })
@@ -588,7 +594,7 @@ export default {
             vertexFormat : Cesium.PolylineColorAppearance.VERTEX_FORMAT
           }),
           attributes: {
-            color: Cesium.ColorGeometryInstanceAttribute.fromColor(Cesium.Color.WHITE)
+            color: Cesium.ColorGeometryInstanceAttribute.fromColor(that.treeColor.get(8))
           }
         }),
         appearance : new Cesium.PolylineColorAppearance({
@@ -675,7 +681,7 @@ export default {
           uri: url,
           scale: heightScale,
           minimumPixelSize: 128,
-          maximumScale: 20000,
+          maximumScale: 200,
           id: tree.treeid,
           color: color
         }
@@ -684,36 +690,68 @@ export default {
       
       viewer.trackedEntity = entity
     },
-    createModel(treeDatas) {
-      treeDatas = treeDatas.map(elem => {
-        this.createTreeModel(elem)
+    createModelTrees(treeDatas) {
+      var viewer = this.theEarth.czm.viewer
+      var url = './ts.gltf'
+      // viewer.entities.removeAll()
+      treeDatas.forEach(tree => {
+        var position = Cesium.Cartesian3.fromDegrees(tree.treeLocationY, tree.treeLocationX, tree.treeLocationNz)
+        var color = this.treeColor.get(tree.status)
+        var heightScale = Number.parseInt(tree.treeheight / 2) / 2
+        var entity = {
+          name: tree.treeid,
+          position: position,
+          model: {
+            uri: url,
+            scale: heightScale,
+            minimumPixelSize: 128,
+            maximumScale: 200,
+            id: tree.treeid,
+            color: color
+          },
+          heightReference: Cesium.HeightReference.CLAMP_TO_GROUND
+        }
+        viewer.entities.add(entity)
       })
     },
-    createStickTrees(treeDatas) {
-      // 暂停或重置时，接口返回数据延迟不再渲染
-      // if(this.beReset || this.showSuspend) {
-      //   return
-      // }
-      
+    create3dTrees(treeDatas) {
       // var viewer = this.theEarth.czm.viewer
-      // heading = Cesium.defaultValue(heading, 0.0);
-      // pitch = Cesium.defaultValue(pitch, 0.0);
-      // roll = Cesium.defaultValue(roll, 0.0);
-      // var instances = treeDatas = treeDatas.map(tree => {
+      // var instances = treeDatas.map(tree => {
       //   var position = Cesium.Cartesian3.fromDegrees(tree.treeLocationY, tree.treeLocationX, tree.treeLocationNz)
       //   var heightScale = Number.parseInt(tree.treeheight / 2) / 2
-      //   var modelMatrix = Cesium.Transforms.headingPitchRollToFixedFrame(position, new Cesium.HeadingPitchRoll(heading, pitch, roll))
+      //   var modelMatrix = Cesium.Transforms.eastNorthUpToFixedFrame(position)
       //   Cesium.Matrix4.multiplyByUniformScale(modelMatrix, heightScale, modelMatrix)
       //   return { modelMatrix: modelMatrix }
       // })
-      // const url = './my.glb'
-      // viewer.scene.primitives.removeAll()
+      // // viewer.scene.primitives.removeAll()
       // var primitive = new Cesium.ModelInstanceCollection({
-      //   url: url,
+      //   url: "./ts.gltf",
       //   instances: instances
       // })
       // viewer.scene.primitives.add(primitive)
 
+      var viewer = this.theEarth.czm.viewer
+      treeDatas.forEach(tree => {
+        var position = Cesium.Cartesian3.fromDegrees(tree.treeLocationY, tree.treeLocationX, tree.treeLocationNz)
+        var modelMatrix = Cesium.Transforms.eastNorthUpToFixedFrame(position)
+        var color = this.treeColor.get(tree.status)
+        var model = Cesium.Model.fromGltf({
+          url: './ts.gltf',
+          modelMatrix: modelMatrix,
+          minimumPixelSize: 128,
+          maximumScale: 200,
+          color: color
+        })
+        viewer.scene.primitives.add(model)
+      })
+    },
+    createStickTrees(treeDatas, skip = true) {
+      // 可通过将skip设置为false，重置点击时重新渲染所有树
+      // 暂停或重置时，接口返回数据延迟不再渲染
+      if(skip && (this.beReset || this.showContinue)) {
+        return
+      }
+      
       var viewer = this.theEarth.czm.viewer
       var points = viewer.scene.primitives.add(new Cesium.PointPrimitiveCollection())
       treeDatas = treeDatas.forEach(tree => {

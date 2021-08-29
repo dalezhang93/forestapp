@@ -1,11 +1,4 @@
 /* eslint-disable no-undef */
-/*
- * @Descripttion: 
- * @Author: sandro0618
- * @Date: 2021-07-20 09:28:02
- * @LastEditors: sandro0618
- * @LastEditTime: 2021-08-03 09:46:25
- */
 // vue.config.js
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const path = require('path')

@@ -1,10 +1,3 @@
-/*
- * @Descripttion: 
- * @Author: sandro0618
- * @Date: 2021-08-24 09:13:10
- * @LastEditors: sandro0618
- * @LastEditTime: 2021-08-24 21:07:43
- */
 /* eslint-disable no-unused-vars */
 import Vue from 'vue'
 
