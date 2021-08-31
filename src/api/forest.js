@@ -11,7 +11,7 @@ export function getAllFires(params) {
 
 export function getAllFiresLocal() {
   return request({
-    url: `tree-0.json`
+    url: `tree-2.json`
   })
 }
 

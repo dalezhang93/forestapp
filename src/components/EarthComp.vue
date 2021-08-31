@@ -12,7 +12,7 @@
             <i class="el-icon-close"></i>
           </el-button>-->
         </div>
-        <el-form ref="fire" :model="fire" :rules="rules" label-position="right" size="mini" label-width="100px">
+        <el-form ref="fire" :model="fire" :rules="rules" label-position="right" size="mini" label-width="140px">
           <el-form-item label="经度：" prop="longitude">
             <el-col :span="20">
               <el-input v-model="fire.longitude"></el-input>
@@ -28,14 +28,12 @@
               <span>{{ fire.treeid }}</span>
             </el-col>
           </el-form-item>
-          <el-form-item>
-            <el-col :span="20">
-              <el-button round type="primary" size="mini" @click="handleClickFire">起火</el-button>
-              <el-button v-if="showContinue" round size="mini" @click="handleContinue">继续</el-button>
-              <el-button v-if="showSuspend" round size="mini" @click="handleSuspend">暂停</el-button>
-              <el-button round size="mini" @click="handleClickReset">重置</el-button>
-            </el-col>
-          </el-form-item>
+          <el-row class="oper-btn-row">
+            <el-button round type="primary" size="mini" @click="handleClickFire">起火</el-button>
+            <el-button v-if="showContinue" round size="mini" @click="handleContinue">继续</el-button>
+            <el-button v-if="showSuspend" round size="mini" @click="handleSuspend">暂停</el-button>
+            <el-button round size="mini" @click="handleClickReset">重置</el-button>
+          </el-row>
           <el-form-item label="温度：" prop="temperature">
             <el-col :span="20">
               <el-input-number v-model="fire.temperature" :min="1" :max="100" label="温度"></el-input-number>
@@ -69,11 +67,9 @@
               <i class="el-icon-caret-bottom"></i>
             </div>
             <div v-if="!showMore">
-              <el-form-item>
-                <el-col :span="20">
-                  <el-button round type="primary" size="mini" @click="firesInit">初始化</el-button>
-                </el-col>
-              </el-form-item>
+              <el-row class="oper-btn-row">
+                <el-button round type="primary" size="mini" @click="firesInit">初始化</el-button>
+              </el-row>
               <el-form-item label="湿度：" prop="humidity">
                 <el-col :span="20">
                   <el-input v-model="fire.humidity" :min="0" :max="12" label="湿度"></el-input>
@@ -101,9 +97,30 @@
                   <el-input v-model="fire.c"></el-input>
                 </el-col>
               </el-form-item>
-              <el-form-item label="比例系数：" prop="ratio">
+              <el-form-item prop="treeRatio">
+                <span slot="label">
+                  <span>可燃物修正系数 K</span>
+                  <sub>s</sub>：
+                </span>
                 <el-col :span="20">
-                  <el-input v-model="fire.ratio"></el-input>
+                  <el-input v-model="fire.treeRatio"></el-input>
+                </el-col>
+              </el-form-item>
+              <el-form-item prop="windRatio">
+                <span slot="label">
+                  <span>风力修正系数 K</span>
+                  <sub>w</sub>：
+                </span>
+                <el-col :span="20">
+                  <el-input v-model="fire.windRatio"></el-input>
+                </el-col>
+              </el-form-item>
+              <el-form-item prop="slopeRatio">
+                <span slot="label">
+                  <span>坡度修正系数 cos&#966;</span>：
+                </span>
+                <el-col :span="20">
+                  <el-input v-model="fire.slopeRatio"></el-input>
                 </el-col>
               </el-form-item>
             </div>
@@ -128,6 +145,7 @@ import dayjs from 'dayjs'
 // import VueDraggableResizable from 'vue-draggable-resizable'
 // import 'vue-draggable-resizable/dist/VueDraggableResizable.css'
 import { getAllFires, getAllFiresLocal, firesInit, nextFire, nextFireLocal, startFire, resetFire, fireLine } from '@/api/forest'
+import { animatedParabola, parabola } from '@/utils/drawLine'
 const statusColor = new Map([
   [0, '#67c23a'],
   [1, '#c92525'],
@@ -182,14 +200,18 @@ export default {
         humidity: '',
         // 植被类型
         vegetationType: '',
-        // 自定义比例系数
-        ratio: '',
+        // 可燃物修正系数
+        treeRatio: '',
+        // 风力修正系数
+        windRatio: '',
+        // 坡度修正系数
+        slopeRatio: '',
         // 温度：摄氏度
         temperature: 28,
         // 风力等级：1-12级
         windGrade: 3,
         // 风向角度：东、南、西、北、东南、东北、西南、西北
-        windAngle: 0,
+        windAngle: 180,
         // 时间：格式为20210801 23:36:00
         startTime: null,
         currentTime: null
@@ -376,6 +398,7 @@ export default {
           this.createStickTrees(this.treeData)
           // 划线test
           // this.drawFireLine(this.treeData)
+          // this.drawParabolaLine(this.treeData)
         })
         // .then(() => {
         //   this.createModelTrees(this.treeData)
@@ -580,6 +603,23 @@ export default {
       }
       var mapvLayer = XE.mixins.mapVLayer(viewer, dataSet, options)
     },
+    drawParabolaLine(treeDatas) {
+      var viewer = this.theEarth.czm.viewer
+      for (let index = 0; index < treeDatas.length; index++) {
+        const tree1X = treeDatas[index].treeLocationX
+        const tree1Y = treeDatas[index].treeLocationY
+        var tree2X = treeDatas[index].treeLocationX
+        var tree2Y = treeDatas[index].treeLocationY
+        if(index === treeDatas.length - 1) {
+          tree2X = treeDatas[0].treeLocationX
+          tree2Y = treeDatas[0].treeLocationY
+        }else {
+          tree2X = treeDatas[index+1].treeLocationX
+          tree2Y = treeDatas[index+1].treeLocationY
+        }
+        parabola([tree1Y, tree1X, tree2Y, tree2X], viewer)
+      }
+    },
     drawFireLine(treeDatas) {
       var viewer = this.theEarth.czm.viewer
       var that = this
@@ -767,6 +807,9 @@ export default {
 }
 </script>
 <style>
+.oper-btn-row {
+  margin: 0 0 18px;
+}
 .el-col .el-select {
   width: 100%;
 }
@@ -800,11 +843,13 @@ export default {
   position: absolute;
   left: 20px;
   top: 60px;
-  width: 20%;
+  width: 22%;
   padding: 0 0 20px;
   border-radius: 6px;
   background: #fff;
   font-size: 14px;
+  /* max-height: 800px;
+  overflow: auto; */
 }
 .dragg-header {
   padding: 20px 0;
