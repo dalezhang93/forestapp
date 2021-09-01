@@ -146,6 +146,7 @@ import dayjs from 'dayjs'
 // import 'vue-draggable-resizable/dist/VueDraggableResizable.css'
 import { getAllFires, getAllFiresLocal, firesInit, nextFire, nextFireLocal, startFire, resetFire, fireLine } from '@/api/forest'
 import { animatedParabola, parabola } from '@/utils/drawLine'
+import BezierMaker from '@/utils/bezierMaker'
 const statusColor = new Map([
   [0, '#67c23a'],
   [1, '#c92525'],
@@ -256,7 +257,7 @@ export default {
         // white
         [8, Cesium.Color.WHITE],
         // flame red
-        [10, Cesium.Color.DARKORANGE],
+        [10, Cesium.Color.DARKRED],
       ]),
       paramBoxVisible: false,
       showParamBox: window.forestFire.showAdminSetting
@@ -269,7 +270,11 @@ export default {
   mounted() {
     // this.firesInit()
     if (typeof XE !== 'undefined') {
-      XE.ready().then(() => XE.HTML.loadMapV())
+      XE.ready()
+        .then(() => {
+          XE.HTML.loadMapV()
+          // return XE.HTML.loadJS('../../XbsjEarth-Plugins/plottingSymbol2/plottingSymbol2.js')
+        })
         .then(() => {
           try {
             this.createEarth()
@@ -335,8 +340,7 @@ export default {
       this.fireLineTimer = null
       var viewer = this.theEarth.czm.viewer
       viewer.scene.primitives.removeAll()
-      this.createStickTrees(this.treeData, false)
-      // this.resetFire()
+      this.resetFire()
     },
     getWindAngleList() {
       this.windAngleList = windAngleList.map(item => {
@@ -399,6 +403,7 @@ export default {
           // 划线test
           // this.drawFireLine(this.treeData)
           // this.drawParabolaLine(this.treeData)
+          // this.drawSmoothPolygon(this.treeData)
         })
         // .then(() => {
         //   this.createModelTrees(this.treeData)
@@ -425,11 +430,25 @@ export default {
       resetFire()
         .then(res => {
           if(res.data.code === 200) {
-            const data = res.data.data
-            if(!data || !data.length) {
-              return
-            }
-            this.createStickTrees(res.data.data)
+            // const data = res.data.data
+            // if(!data || !data.length) {
+            //   return
+            // }
+            // this.createStickTrees(res.data.data)
+
+            // getAllFires()
+            //   .then(res => {
+            //     if(res.data.code === 200) {
+            //       this.treeData = res.data.data
+            //     }
+            //   })
+            //   .then(() => {
+            //     this.createStickTrees(this.treeData, false)
+            //   })
+            this.treeData.forEach(item => {
+              item.status = 0
+            })
+            this.createStickTrees(this.treeData, false)
           }
         })
         .catch(err => {
@@ -508,7 +527,7 @@ export default {
       this.showSuspend = true
       const newFirstFireTree = JSON.parse(JSON.stringify(firstFireTree))
       newFirstFireTree.status = 10
-      this.createStickTrees([newFirstFireTree])
+      this.createStickTrees([newFirstFireTree], true, { pixelSize: 18 })
       // this.createFlame(newFirstFireTree.treeLocationY, newFirstFireTree.treeLocationX, newFirstFireTree.treeLocationNz)
       this.startFire(newFirstFireTree.treeid)
       this.treeFireTimer()
@@ -619,6 +638,40 @@ export default {
         }
         parabola([tree1Y, tree1X, tree2Y, tree2X], viewer)
       }
+    },
+    drawSmoothPolygon(treeDatas) {
+      // var viewer = this.theEarth.czm.viewer
+      // var geoData = treeDatas.map(item => {
+      //   return Cesium.Cartesian3.fromDegrees(item.treeLocationY, item.treeLocationX, item.treeLocationNz)
+      // })
+      // const entity = {
+      //   polygon: {
+      //     hierarchy: geoData,
+      //     extrudedHeight: 50000,
+      //     material: Cesium.Color.MAGENTA,
+      //     outline: true,
+      //     outlineColor: Cesium.Color.WHITE,
+      //     arcType: Cesium.ArcType.ROAD_ON_DEMAND,
+      //   },
+      // }
+      // viewer.entities.add(entity)
+
+
+      var geoData = treeDatas.map(item => {
+        // return Cesium.Cartesian3.fromDegrees(item.treeLocationY, item.treeLocationX, item.treeLocationNz)
+        return [item.treeLocationY, item.treeLocationX, item.treeLocationNz]
+      })
+      var polygon = {
+        "ref": "polygon",
+        "czmObject": {
+          "xbsjType": "GeoSmoothPolygon",
+          "positions": geoData
+        },
+        // outline: true,
+        // outlineColor: Cesium.Color.WHITE
+      }
+      this.theEarth.czm.viewer.entities.add(polygon)
+      // this.theEarth.sceneTree.root.children.push('polygon', polygon)
     },
     drawFireLine(treeDatas) {
       var viewer = this.theEarth.czm.viewer
@@ -785,7 +838,7 @@ export default {
         viewer.scene.primitives.add(model)
       })
     },
-    createStickTrees(treeDatas, skip = true) {
+    createStickTrees(treeDatas, skip = true, options) {
       // 可通过将skip设置为false，重置点击时重新渲染所有树
       // 暂停或重置时，接口返回数据延迟不再渲染
       if(skip && (this.beReset || this.showContinue)) {
@@ -797,10 +850,10 @@ export default {
       treeDatas = treeDatas.forEach(tree => {
         var position = Cesium.Cartesian3.fromDegrees(tree.treeLocationY, tree.treeLocationX, tree.treeLocationNz)
         var color = this.treeColor.get(tree.status)
-        points.add({
+        points.add(Object.assign({
           position,
           color
-        })
+        }, options))
       })
     }
   }
