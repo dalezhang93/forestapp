@@ -13,54 +13,107 @@
           </el-button>-->
         </div>
         <el-form ref="fire" :model="fire" :rules="rules" label-position="right" size="mini" label-width="140px">
-          <el-form-item label="经度：" prop="longitude">
-            <el-col :span="20">
-              <el-input v-model="fire.longitude"></el-input>
+          <el-row class="row-content-center">
+            <el-col :span="12">
+              <el-form-item label="林火蔓延模型库：" prop="fireModel">
+                <el-select v-model="fire.fireModel" placeholder="请选择林火蔓延模型">
+                  <el-option v-for="(item, index) in fireSpreadModelList" :key="index" :label="item.label" :value="item.value"></el-option>
+                </el-select>
+              </el-form-item>
             </el-col>
-          </el-form-item>
-          <el-form-item label="纬度：" prop="latitude">
-            <el-col :span="20">
-              <el-input v-model="fire.latitude"></el-input>
+          </el-row>
+          <el-row>
+            <el-col :span="2">
+              <el-form-item label="起火点设置："></el-form-item>
             </el-col>
-          </el-form-item>
-          <el-form-item label="treeid：" prop="treeid">
-            <el-col :span="20">
-              <span>{{ fire.treeid }}</span>
+            <el-col :span="22">
+              <el-row>
+                <el-col :span="12">
+                  <el-form-item label="经度：" prop="longitude">
+                    <el-input v-model="fire.longitude"></el-input>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                  <el-form-item label="纬度：" prop="latitude">
+                    <el-input v-model="fire.latitude"></el-input>
+                  </el-form-item>
+                </el-col>
+              </el-row>
+              <el-row>
+                <el-col :span="12">
+                  <el-form-item label="单木ID：" prop="treeid">
+                    <el-input v-model="fire.treeid" disabled></el-input>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                  <el-form-item label="单木高程(m)：" prop="treeHeight">
+                    <el-input v-model="fire.treeHeight" disabled></el-input>
+                  </el-form-item>
+                </el-col>
+              </el-row>
             </el-col>
-          </el-form-item>
+          </el-row>
           <el-row class="oper-btn-row">
             <el-button round type="primary" size="mini" @click="handleClickFire">起火</el-button>
             <el-button v-if="showContinue" round size="mini" @click="handleContinue">继续</el-button>
             <el-button v-if="showSuspend" round size="mini" @click="handleSuspend">暂停</el-button>
             <el-button round size="mini" @click="handleClickReset">重置</el-button>
           </el-row>
-          <el-form-item label="温度：" prop="temperature">
-            <el-col :span="20">
-              <el-input-number v-model="fire.temperature" :min="1" :max="100" label="温度"></el-input-number>
+          <el-row>
+            <el-col :span="12">
+              <el-form-item label="起火时间：">
+                <span>{{ formatTime(fire.startTime) }}</span>
+              </el-form-item>
             </el-col>
-          </el-form-item>
-          <el-form-item label="风力等级：" prop="windGrade">
-            <el-col :span="20">
-              <el-input-number v-model="fire.windGrade" :min="0" :max="12" label="风力等级"></el-input-number>
+            <el-col :span="12">
+              <el-form-item label="燃烧时间(s)：">
+                <span>{{ fire.fireTime }}</span>
+              </el-form-item>
             </el-col>
-          </el-form-item>
-          <el-form-item label="风向角度：" prop="windAngle">
-            <el-col :span="20">
-              <el-select v-model="fire.windAngle" placeholder="请选择风向角度">
-                <el-option v-for="(item, index) in windAngleList" :key="index" :label="item.label" :value="item.value"></el-option>
-              </el-select>
+            <!-- <el-col :span="12">
+              <el-form-item label="当前时间：">
+                <span>{{ formatTime(fire.currentTime) }}</span>
+              </el-form-item>
+            </el-col>-->
+          </el-row>
+          <el-row>
+            <el-col :span="12">
+              <el-form-item label="时间函数(s)：" prop="stepSeconds">
+                <el-input v-model="stepSeconds" label="时间函数"></el-input>
+              </el-form-item>
             </el-col>
-          </el-form-item>
-          <el-form-item label="开始时间：">
-            <el-col :span="20">
-              <span>{{ formatTime(fire.startTime) }}</span>
+            <el-col :span="12">
+              <el-form-item label="火线时间间隔(s)：" prop="fireLineTimerSeconds">
+                <el-input v-model="fireLineTimerSeconds" label="火线时间间隔："></el-input>
+              </el-form-item>
             </el-col>
-          </el-form-item>
-          <el-form-item label="当前时间：">
-            <el-col :span="20">
-              <span>{{ formatTime(fire.currentTime) }}</span>
+          </el-row>
+          <el-row>
+            <el-col :span="12">
+              <el-form-item label="环境温度(℃)：" prop="temperature">
+                <el-input-number v-model="fire.temperature" :min="1" :max="100" label="温度"></el-input-number>
+              </el-form-item>
             </el-col>
-          </el-form-item>
+            <el-col :span="12">
+              <el-form-item label="风力等级：" prop="windGrade">
+                <el-input-number v-model="fire.windGrade" :min="0" :max="12" label="风力等级"></el-input-number>
+              </el-form-item>
+            </el-col>
+          </el-row>
+          <el-row>
+            <el-col :span="12">
+              <el-form-item label="湿度(%)：" prop="humidity">
+                <el-input v-model="fire.humidity" label="湿度："></el-input>
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item label="风向角度：" prop="windAngle">
+                <el-select v-model="fire.windAngle" placeholder="请选择风向角度">
+                  <el-option v-for="(item, index) in windAngleList" :key="index" :label="item.label" :value="item.value"></el-option>
+                </el-select>
+              </el-form-item>
+            </el-col>
+          </el-row>
           <div>
             <div v-if="showMore" @click="showMore = false">
               <span style="cursor: default;">展开</span>
@@ -70,59 +123,81 @@
               <el-row class="oper-btn-row">
                 <el-button round type="primary" size="mini" @click="firesInit">初始化</el-button>
               </el-row>
-              <el-form-item label="湿度：" prop="humidity">
-                <el-col :span="20">
-                  <el-input v-model="fire.humidity" :min="0" :max="12" label="湿度"></el-input>
+              <el-row>
+                <el-col :span="12">
+                  <el-form-item label="可燃物类型：" prop="vegetationType">
+                    <el-select v-model="fire.vegetationType" placeholder="请选择 可自定义输入" filterable allow-create default-first-option>
+                      <el-option v-for="(item, index) in vegetationTypeList" :key="index" :label="item.label" :value="item.value"></el-option>
+                    </el-select>
+                  </el-form-item>
                 </el-col>
-              </el-form-item>
-              <el-form-item label="植被类型：" prop="vegetationType">
-                <el-col :span="20">
-                  <el-select v-model="fire.vegetationType" placeholder="请选择植被类型">
-                    <el-option v-for="(item, index) in vegetationTypeList" :key="index" :label="item.label" :value="item.value"></el-option>
-                  </el-select>
+                <el-col :span="12">
+                  <el-form-item label="可燃物含水率(%)：" prop="waterRate">
+                    <el-input v-model="fire.waterRate" label="可燃物含水率："></el-input>
+                  </el-form-item>
                 </el-col>
-              </el-form-item>
-              <el-form-item label="系数 a：" prop="a">
-                <el-col :span="20">
+              </el-row>
+              <!-- <el-form-item label="系数 a：" prop="a">
+                <el-col :span="12">
                   <el-input v-model="fire.a"></el-input>
                 </el-col>
               </el-form-item>
               <el-form-item label="系数 b：" prop="b">
-                <el-col :span="20">
+                <el-col :span="12">
                   <el-input v-model="fire.b"></el-input>
                 </el-col>
               </el-form-item>
               <el-form-item label="系数 c：" prop="c">
-                <el-col :span="20">
+                <el-col :span="12">
                   <el-input v-model="fire.c"></el-input>
                 </el-col>
-              </el-form-item>
-              <el-form-item prop="treeRatio">
-                <span slot="label">
-                  <span>可燃物修正系数 K</span>
-                  <sub>s</sub>：
-                </span>
-                <el-col :span="20">
-                  <el-input v-model="fire.treeRatio"></el-input>
+              </el-form-item>-->
+              <el-row class="row-content-center">
+                <el-col :span="12">
+                  <el-form-item prop="initSpeed">
+                    <span slot="label">
+                      <span>初始火焰蔓延速度 R</span>
+                      <sub>0</sub>：
+                    </span>
+                    <el-input v-model="fire.initSpeed"></el-input>
+                  </el-form-item>
                 </el-col>
-              </el-form-item>
-              <el-form-item prop="windRatio">
-                <span slot="label">
-                  <span>风力修正系数 K</span>
-                  <sub>w</sub>：
-                </span>
-                <el-col :span="20">
-                  <el-input v-model="fire.windRatio"></el-input>
+              </el-row>
+              <el-row class="row-content-center">
+                <el-col :span="12">
+                  <el-form-item prop="treeRatio">
+                    <span slot="label">
+                      <span>可燃物修正系数 K</span>
+                      <sub>s</sub>：
+                    </span>
+                    <!-- <el-input v-model="fire.treeRatio"></el-input> -->
+                    <el-select v-model="fire.treeRatio" placeholder="请选择 可自定义输入" filterable allow-create default-first-option>
+                      <el-option v-for="(item, index) in treeRatioList" :key="index" :label="item.label" :value="item.value"></el-option>
+                    </el-select>
+                  </el-form-item>
                 </el-col>
-              </el-form-item>
-              <el-form-item prop="slopeRatio">
-                <span slot="label">
-                  <span>坡度修正系数 cos&#966;</span>：
-                </span>
-                <el-col :span="20">
-                  <el-input v-model="fire.slopeRatio"></el-input>
+              </el-row>
+              <el-row class="row-content-center">
+                <el-col :span="12">
+                  <el-form-item prop="windRatio">
+                    <span slot="label">
+                      <span>风力修正系数 K</span>
+                      <sub>w</sub>：
+                    </span>
+                    <el-input v-model="fire.windRatio"></el-input>
+                  </el-form-item>
                 </el-col>
-              </el-form-item>
+              </el-row>
+              <el-row class="row-content-center">
+                <el-col :span="12">
+                  <el-form-item prop="slopeRatio">
+                    <span slot="label">
+                      <span>坡度修正系数 cos&#966;</span>：
+                    </span>
+                    <el-input v-model="fire.slopeRatio"></el-input>
+                  </el-form-item>
+                </el-col>
+              </el-row>
             </div>
             <div v-if="!showMore" @click="showMore = true">
               <span style="cursor: default;">收起</span>
@@ -153,14 +228,14 @@ const statusColor = new Map([
   [2, '#494646']
 ])
 const windAngleList = [
-  ['东', 180],
-  ['南', 90],
-  ['西', 0],
-  ['北', -90],
-  ['东南', 135],
-  ['东北', -135],
-  ['西南', 45],
-  ['西北', -45]
+  [180, '东'],
+  [90, '南'],
+  [0, '西'],
+  [-90, '北'],
+  [135, '东南'],
+  [-135, '东北'],
+  [45, '西南'],
+  [-45, '西北']
 ]
 const vegetationTypeList = [
   ['1', '水系'],
@@ -173,6 +248,30 @@ const vegetationTypeList = [
   ['8', '草地'],
   ['9', '针叶林']
 ]
+const treeRatioList = [
+  ['1', '耕地(1)'],
+  ['1.3', '阔叶林(1.3)'],
+  ['0.5', '混交林(0.5)'],
+  ['1', '灌木丛(1)'],
+  ['1.5', '草地(1.5)'],
+  ['1.8', '针叶林(1.8)']
+]
+const fireSpreadModelList = [
+  ['a', '三维元胞自动机林火蔓延模型'],
+  ['b', 'Rothemel林火蔓延模型'],
+  ['c', 'CFFDRS林火蔓延模型'],
+  ['d', '王正非林火蔓延模型'],
+  ['e', 'McArthur林火蔓延模型'],
+  ['f', '自定义非确定性林火蔓延模型']
+]
+function convertArray(list) {
+  return list.map(item => {
+    return {
+      label: item[1],
+      value: item[0]
+    }
+  })
+}
 export default {
   name: 'EarthComp',
   components: {
@@ -189,14 +288,21 @@ export default {
       fireLineTimerSeconds: 60,
       // 调用nextFire接口时，传递的时间参数增加的步长，以秒为单位。通过修改此变量的值更改燃烧的速度
       stepSeconds: 2,
+      // 点击选中的点的经度
+      longitude: null,
+      // 点击选中的点的纬度
+      latitude: null,
       fire: {
         longitude: null,
         latitude: null,
         treeid: '',
+        treeHeight: '',
         // R0 = aT + bW - c
         a: 0.053,
         b: 0.048,
         c: 0.275,
+        // 蔓延模型
+        fireModel: 'a',
         // 湿度
         humidity: '',
         // 植被类型
@@ -215,7 +321,8 @@ export default {
         windAngle: 180,
         // 时间：格式为20210801 23:36:00
         startTime: null,
-        currentTime: null
+        currentTime: null,
+        fireTime: null
       },
       rules: {
         longitude: [
@@ -245,6 +352,8 @@ export default {
       fireLineTimer: null,
       windAngleList: [],
       vegetationTypeList: [],
+      treeRatioList: [],
+      fireSpreadModelList: [],
       lastFiredTreeList: null,
       lastFiredTime: null,
       treeColor: new Map([
@@ -260,20 +369,33 @@ export default {
         [10, Cesium.Color.DARKRED],
       ]),
       paramBoxVisible: false,
-      showParamBox: window.forestFire.showAdminSetting
+      showParamBox: window.forestFire.showAdminSetting,
+      startFireTree: null
+    }
+  },
+  watch: {
+    fireLineTimerSeconds(newVal, oldVal) {
+      if(newVal !== oldVal) {
+        clearInterval(this.fireLineTimer)
+        this.fireLineTimer = null
+        this.getFireLineTimer()
+      }
     }
   },
   created() {
-    this.getWindAngleList()
-    this.getVegetationTypeList()
+    this.windAngleList = convertArray(windAngleList)
+    this.vegetationTypeList = convertArray(vegetationTypeList)
+    this.fireSpreadModelList = convertArray(fireSpreadModelList)
+    this.treeRatioList = convertArray(treeRatioList)
   },
   mounted() {
     // this.firesInit()
     if (typeof XE !== 'undefined') {
       XE.ready()
         .then(() => {
-          XE.HTML.loadMapV()
-          // return XE.HTML.loadJS('../../XbsjEarth-Plugins/plottingSymbol2/plottingSymbol2.js')
+          const p1 = XE.HTML.loadMapV()
+          const p2 = XE.HTML.loadJS('../../XbsjEarth-Plugins/plottingSymbol2/plottingSymbol2.js')
+          return Promise.all([p1, p2])
         })
         .then(() => {
           try {
@@ -342,22 +464,6 @@ export default {
       viewer.scene.primitives.removeAll()
       this.resetFire()
     },
-    getWindAngleList() {
-      this.windAngleList = windAngleList.map(item => {
-        return {
-          label: item[0],
-          value: item[1]
-        }
-      })
-    },
-    getVegetationTypeList() {
-      this.vegetationTypeList = vegetationTypeList.map(item => {
-        return {
-          label: item[1],
-          value: item[0]
-        }
-      })
-    },
     treeFireTimer() {
       const that = this
       this.timer = setInterval(() => {
@@ -381,8 +487,12 @@ export default {
             data.forEach(item => {
               item.status = 8
             })
+            // 暂停或重置时，接口返回数据延迟不再渲染
+            if(this.beReset || this.showContinue) {
+              return
+            }
             this.createStickTrees(data)
-            this.drawFireLine(data)
+            this.drawFireLine(this.fireLineSort(data))
           }
         })
         .catch(err => {
@@ -430,12 +540,6 @@ export default {
       resetFire()
         .then(res => {
           if(res.data.code === 200) {
-            // const data = res.data.data
-            // if(!data || !data.length) {
-            //   return
-            // }
-            // this.createStickTrees(res.data.data)
-
             // getAllFires()
             //   .then(res => {
             //     if(res.data.code === 200) {
@@ -443,17 +547,17 @@ export default {
             //     }
             //   })
             //   .then(() => {
-            //     this.createStickTrees(this.treeData, false)
+            //     this.createStickTrees(this.treeData)
             //   })
-            this.treeData.forEach(item => {
-              item.status = 0
-            })
-            this.createStickTrees(this.treeData, false)
           }
         })
         .catch(err => {
           console.log(err)
         })
+      this.treeData.forEach(item => {
+        item.status = 0
+      })
+      this.createStickTrees(this.treeData)
     },
     formatTime(time) {
       return time ? dayjs(time).format('YYYY-MM-DD HH:mm:ss') : ''
@@ -461,6 +565,7 @@ export default {
     startFire(treeid) {
       this.fire.startTime = new Date()
       this.fire.currentTime = this.fire.startTime
+      this.fire.fireTime = dayjs(this.fire.currentTime).diff(dayjs(this.fire.startTime), 'second')
       let params = {
         treeid: treeid
       }
@@ -476,6 +581,7 @@ export default {
     },
     nextFire() {
       this.fire.currentTime = dayjs(this.fire.currentTime).add(this.stepSeconds, 's')
+      this.fire.fireTime = dayjs(this.fire.currentTime).diff(dayjs(this.fire.startTime), 'second')
       let params = {
         a: this.fire.a,
         b: this.fire.b,
@@ -500,7 +606,15 @@ export default {
                   item.status = 8
                 })
               }
+              // 暂停或重置时，接口返回数据延迟不再渲染
+              if(this.beReset || this.showContinue) {
+                return
+              }
               this.createStickTrees(this.lastFiredTreeList)
+            }
+            // 暂停或重置时，接口返回数据延迟不再渲染
+            if(this.beReset || this.showContinue) {
+              return
             }
             this.createStickTrees(data)
             this.lastFiredTreeList = data
@@ -525,16 +639,17 @@ export default {
       }
       this.beReset = false
       this.showSuspend = true
+      this.startFireTree = firstFireTree
       const newFirstFireTree = JSON.parse(JSON.stringify(firstFireTree))
       newFirstFireTree.status = 10
-      this.createStickTrees([newFirstFireTree], true, { pixelSize: 18 })
+      this.createStickTrees([newFirstFireTree], { pixelSize: 18 })
       // this.createFlame(newFirstFireTree.treeLocationY, newFirstFireTree.treeLocationX, newFirstFireTree.treeLocationNz)
       this.startFire(newFirstFireTree.treeid)
       this.treeFireTimer()
       this.getFireLineTimer()
     },
     computeShortDistance() {
-      var start = Cesium.Cartographic.fromDegrees(this.fire.longitude, this.fire.latitude)
+      var start = Cesium.Cartographic.fromDegrees(this.longitude, this.latitude)
       var minVal = 10000
       var minDisTree
       const that = this
@@ -696,24 +811,44 @@ export default {
       })
       viewer.scene.primitives.add(primitive)
     },
+    fireLineSort(treeDatas) {
+      if(this.startFireTree && treeDatas && treeDatas.length > 0) {
+        const leftTop = [], rightTop = [], rightBottom = [], leftBottom = []
+        treeDatas.forEach(item => {
+          item.xNum = Number.parseFloat(item.treeLocationX)
+          item.yNum = Number.parseFloat(item.treeLocationY)
+          const xDis = item.xNum - Number.parseFloat(this.startFireTree.treeLocationX)
+          const yDis = item.yNum - Number.parseFloat(this.startFireTree.treeLocationY)
+          if(xDis <= 0 && yDis > 0) {
+            leftTop.push(item)
+          } else if(xDis > 0 && yDis >= 0) {
+            rightTop.push(item)
+          } else if(xDis >= 0 && yDis < 0) {
+            rightBottom.push(item)
+          } else if(xDis < 0 && yDis <= 0) {
+            leftBottom.push(item)
+          }
+        })
+        leftTop.sort((a, b) => {
+          return a.xNum - b.xNum || a.yNum - b.yNum
+        })
+        rightTop.sort((a, b) => {
+          return a.xNum - b.xNum || b.yNum - a.yNum
+        })
+        rightBottom.sort((a, b) => {
+          return b.xNum - a.xNum || b.yNum - a.yNum
+        })
+        leftBottom.sort((a, b) => {
+          return b.xNum - a.xNum || a.yNum - b.yNum
+        })
+        treeDatas = [...leftTop, ...rightTop, ...rightBottom, ...leftBottom]
+      }
+      return treeDatas
+    },
     createEarth() {
       var earth = new XE.Earth(this.$refs.earthContainer)
       earth.sceneTree.root = {
         children: [
-          // {
-          //   czmObject: {
-          //     "name": 'OpenStreetMap',
-          //     "imgUrl": './images/openstreetmap.jpg',
-          //     "xbsjType": "Imagery",
-          //     "xbsjImageryProvider": {
-          //       "XbsjImageryProvider": {
-          //         "url": '//c.tile.openstreetmap.org/{z}/{x}/{y}.png',
-          //         "srcCoordType": 'WGS84',
-          //         "dstCoordType": "WGS84",
-          //       },
-          //     }
-          //   }
-          // },
           {
             "czmObject": {
               "name": "天地图-影像",
@@ -745,12 +880,13 @@ export default {
       const that = this
       handler.setInputAction(function (event) {
         var position = earth.pickPosition(event.position)
-        var longitude = Cesium.Math.toDegrees(position[0])
-        var latitude = Cesium.Math.toDegrees(position[1])
-        that.fire.longitude = longitude
-        that.fire.latitude = latitude
+        that.longitude = Cesium.Math.toDegrees(position[0])
+        that.latitude = Cesium.Math.toDegrees(position[1])
         var minDisTree = that.computeShortDistance()
+        that.fire.longitude = minDisTree.treeLocationY
+        that.fire.latitude = minDisTree.treeLocationX
         that.fire.treeid = minDisTree && minDisTree.treeid
+        that.fire.treeHeight = minDisTree && minDisTree.treeLocationNz
         that.$refs.fire.validate(valid => {})
       }, Cesium.ScreenSpaceEventType.LEFT_CLICK)
 
@@ -838,13 +974,7 @@ export default {
         viewer.scene.primitives.add(model)
       })
     },
-    createStickTrees(treeDatas, skip = true, options) {
-      // 可通过将skip设置为false，重置点击时重新渲染所有树
-      // 暂停或重置时，接口返回数据延迟不再渲染
-      if(skip && (this.beReset || this.showContinue)) {
-        return
-      }
-      
+    createStickTrees(treeDatas, options) {      
       var viewer = this.theEarth.czm.viewer
       var points = viewer.scene.primitives.add(new Cesium.PointPrimitiveCollection())
       treeDatas = treeDatas.forEach(tree => {
@@ -860,6 +990,10 @@ export default {
 }
 </script>
 <style>
+.row-content-center {
+  display: flex;
+  justify-content: center;
+}
 .oper-btn-row {
   margin: 0 0 18px;
 }
@@ -886,18 +1020,18 @@ export default {
   font-size: 14px;
 }
 .dragg-wrapper::after {
-  content: "";
+  content: " ";
   clear: both;
   display: block;
-  overflow: hidden;
+  height: 0;
   visibility: hidden;
 }
 .dragg-container {
   position: absolute;
   left: 20px;
   top: 60px;
-  width: 22%;
-  padding: 0 0 20px;
+  width: 35%;
+  padding: 0 20px 20px 0;
   border-radius: 6px;
   background: #fff;
   font-size: 14px;
