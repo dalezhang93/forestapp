@@ -14,7 +14,7 @@
         </div>
         <el-form ref="fire" :model="fire" :rules="rules" label-position="right" size="mini" label-width="140px">
           <el-row class="row-content-center">
-            <el-col :span="12">
+            <el-col :span="18">
               <el-form-item label="林火蔓延模型库：" prop="fireModel">
                 <el-select v-model="fire.fireModel" placeholder="请选择林火蔓延模型">
                   <el-option v-for="(item, index) in fireSpreadModelList" :key="index" :label="item.label" :value="item.value"></el-option>
