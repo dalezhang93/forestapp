@@ -133,7 +133,7 @@
                 </el-col>
                 <el-col :span="12">
                   <el-form-item label="可燃物含水率(%)：" prop="waterRate">
-                    <el-input v-model="fire.waterRate" label="可燃物含水率："></el-input>
+                    <el-input v-model.number="fire.waterRate" label="可燃物含水率："></el-input>
                   </el-form-item>
                 </el-col>
               </el-row>
@@ -285,9 +285,9 @@ export default {
       // 定时器获取nextFire接口(下一组燃烧点)的时间间隔，以秒为单位
       treeFireTimerSeconds: 2,
       // 定时器获取fireline接口(火线)的时间间隔，以秒为单位
-      fireLineTimerSeconds: 60,
+      fireLineTimerSeconds: 600,
       // 调用nextFire接口时，传递的时间参数增加的步长，以秒为单位。通过修改此变量的值更改燃烧的速度
-      stepSeconds: 2,
+      stepSeconds: 30,
       // 点击选中的点的经度
       longitude: null,
       // 点击选中的点的纬度
