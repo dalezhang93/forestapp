@@ -70,11 +70,6 @@
                 <span>{{ fire.fireTime }}</span>
               </el-form-item>
             </el-col>
-            <!-- <el-col :span="12">
-              <el-form-item label="当前时间：">
-                <span>{{ formatTime(fire.currentTime) }}</span>
-              </el-form-item>
-            </el-col>-->
           </el-row>
           <el-row>
             <el-col :span="12">
@@ -132,70 +127,216 @@
                   </el-form-item>
                 </el-col>
                 <el-col :span="12">
-                  <el-form-item label="可燃物含水率(%)：" prop="waterRate">
+                  <el-form-item label="可燃物含水率(%)：" prop="waterRate" clearable filterable allow-create default-first-option>
                     <el-input v-model.number="fire.waterRate" label="可燃物含水率："></el-input>
                   </el-form-item>
                 </el-col>
               </el-row>
-              <!-- <el-form-item label="系数 a：" prop="a">
+              <el-row>
                 <el-col :span="12">
-                  <el-input v-model="fire.a"></el-input>
-                </el-col>
-              </el-form-item>
-              <el-form-item label="系数 b：" prop="b">
-                <el-col :span="12">
-                  <el-input v-model="fire.b"></el-input>
-                </el-col>
-              </el-form-item>
-              <el-form-item label="系数 c：" prop="c">
-                <el-col :span="12">
-                  <el-input v-model="fire.c"></el-input>
-                </el-col>
-              </el-form-item>-->
-              <el-row class="row-content-center">
-                <el-col :span="12">
-                  <el-form-item prop="initSpeed">
-                    <span slot="label">
-                      <span>初始火焰蔓延速度 R</span>
-                      <sub>0</sub>：
-                    </span>
-                    <el-input v-model="fire.initSpeed"></el-input>
+                  <el-form-item label="初始火焰蔓延速度">
+                    <el-select v-model="fire.initSpeedAlgo" placeholder="请选择" clearable allow-create filterable default-first-option @change="selectChange1">
+                      <el-option v-for="(item, index) in algorithmList1" :key="index" :label="item.label" :value="item.value"></el-option>
+                    </el-select>
                   </el-form-item>
                 </el-col>
+                <el-col :span="4">
+                  <span>{{ fire.initSpeed }} m/min</span>
+                </el-col>
               </el-row>
-              <el-row class="row-content-center">
+              <el-dialog
+                title="算法"
+                :visible.sync="dialogVisible1"
+                width="30%">
+                <template>
+                  <el-row>
+                    <el-col :span="12" v-if="isShow1">
+                      <el-form-item label="环境温度(℃)：" prop="temperature">
+                        <el-input-number v-model="fire.temperature" :min="1" :max="100" label="温度"></el-input-number>
+                      </el-form-item>
+                    </el-col>
+                  </el-row>
+                  <el-row>
+                    <el-col :span="12" v-if="isShow1">
+                      <el-form-item label="风力等级：" prop="windGrade">
+                        <el-input-number v-model="fire.windGrade" :min="0" :max="12" label="风力等级"></el-input-number>
+                      </el-form-item>
+                    </el-col>
+                  </el-row>
+                  <el-row>
+                    <el-col :span="12" v-if="isShow2">
+                      <el-form-item label="可燃物含水率(%)：" prop="waterRate">
+                        <el-input v-model.number="fire.waterRate" label="可燃物含水率："></el-input>
+                      </el-form-item>
+                    </el-col>
+                  </el-row>
+                  <el-row>
+                    <el-col :span="12" v-if="isShow3">
+                      <el-form-item label="日最高温度(℃)：" prop="maxTemperatureByDay">
+                        <el-input v-model.number="fire.maxTemperatureByDay" label="日最高温度:"></el-input>
+                      </el-form-item>
+                    </el-col>
+                  </el-row>
+                  <el-row>
+                    <el-col :span="12" v-if="isShow3">
+                      <el-form-item label="日中平均风力W2(级)：" prop="wind2">
+                        <el-input v-model.number="fire.wind2" label="日中平均风力W2: "></el-input>
+                      </el-form-item>
+                    </el-col>
+                  </el-row>
+                  <el-row>
+                    <el-col :span="12" v-if="isShow3">
+                      <el-form-item label="日最小湿度h(%)：" prop="minHumidityByDay">
+                        <el-input v-model.number="fire.minHumidityByDay" label="日最小湿度: "></el-input>
+                      </el-form-item>
+                    </el-col>
+                  </el-row>
+                  <el-row>
+                    <el-col :span="12" v-if="isShow4">
+                      <el-form-item label="风速Vf(m/s)" prop="windowSpeed">
+                        <el-input v-model.number="fire.windowSpeed" label="风速Vf(m/s): "></el-input>
+                      </el-form-item>
+                    </el-col>
+                  </el-row>
+                  <el-row>
+                    <el-col :span="12" v-if="isShow4">
+                      <el-form-item label="风向与坡向的夹角" prop="angel">
+                        <el-input v-model.number="fire.angel" label="风向与坡向的夹角: "></el-input>
+                      </el-form-item>
+                    </el-col>
+                  </el-row>
+                  <el-row>
+                    <el-col :span="12" v-if="isShow5">
+                      <el-form-item label="坡度：" prop="slope">
+                        <el-input v-model="fire.slope" label="坡度:"></el-input>
+                      </el-form-item>
+                    </el-col>
+                  </el-row>
+                  <el-row>
+                    <el-col :span="12" v-if="isShow6">
+                      <el-form-item label="火焰区反应强度(kJ/m·min)" prop="slope">
+                        <el-input v-model="fire.flameReactionIntensity" label="火焰区反应强度(kJ/m·min):"></el-input>
+                      </el-form-item>
+                    </el-col>
+                  </el-row>
+                  <el-row>
+                    <el-col :span="12" v-if="isShow6">
+                      <el-form-item label="林火蔓延率" prop="slope">
+                        <el-input v-model="fire.spreadRate" label="林火蔓延率:"></el-input>
+                      </el-form-item>
+                    </el-col>
+                  </el-row>
+                  <el-row>
+                    <el-col :span="12" v-if="isShow6">
+                      <el-form-item label="可燃物密度(Kg/m3)" prop="slope">
+                        <el-input v-model="fire.fuelCompactness" label="可燃物密度(Kg/m3):"></el-input>
+                      </el-form-item>
+                    </el-col>
+                  </el-row>
+                  <el-row>
+                    <el-col :span="12" v-if="isShow6">
+                      <el-form-item label="有效热系数" prop="slope">
+                        <el-input v-model="fire.effectiveHeatCoefficient" label="有效热系数:"></el-input>
+                      </el-form-item>
+                    </el-col>
+                  </el-row>
+                  <el-row>
+                    <el-col :span="12" v-if="isShow6">
+                      <el-form-item label="预燃热Q (KJ/Kg)" prop="slope">
+                        <el-input v-model="fire.precombustionHot" label="预燃热Q (KJ/Kg):"></el-input>
+                      </el-form-item>
+                    </el-col>
+                  </el-row>
+                  <el-row>
+                    <el-col :span="12" v-if="isShow6">
+                      <el-form-item label="风速修正系数" prop="slope">
+                        <el-input v-model="fire.windSpeedCorrectionFactor" label="风速修正系数:"></el-input>
+                      </el-form-item>
+                    </el-col>
+                  </el-row>
+                  <el-row>
+                    <el-col :span="12" v-if="isShow6">
+                      <el-form-item label="坡度修正系数" prop="slope">
+                        <el-input v-model="fire.slopeCorrectionFactor" label="坡度修正系数:"></el-input>
+                      </el-form-item>
+                    </el-col>
+                  </el-row>
+                  <el-row>
+                    <el-col :span="12" v-if="isShow7">
+                      <el-form-item label="干旱码" prop="slope">
+                        <el-input v-model="fire.droughtCode" label="干旱码:"></el-input>
+                      </el-form-item>
+                    </el-col>
+                  </el-row>
+                  <el-row>
+                    <el-col :span="12" v-if="isShow7">
+                      <el-form-item label="环境温度（℃）" prop="slope">
+                        <el-input v-model="fire.temperature" label="环境温度:"></el-input>
+                      </el-form-item>
+                    </el-col>
+                  </el-row>
+                  <el-row>
+                    <el-col :span="12" v-if="isShow7">
+                      <el-form-item label="湿度H(%)" prop="slope">
+                        <el-input v-model="fire.humidity" label="湿度H:"></el-input>
+                      </el-form-item>
+                    </el-col>
+                  </el-row>
+                  <el-row>
+                    <el-col :span="12" v-if="isShow7">
+                      <el-form-item label="坡度：" prop="slope">
+                        <el-input v-model="fire.slope" label="坡度:"></el-input>
+                      </el-form-item>
+                    </el-col>
+                  </el-row>
+                </template>
+                <span slot="footer" class="dialog-footer">
+                  <el-button type="primary" @click="handleClose">确定</el-button>
+                </span>
+              </el-dialog>
+              <el-row>
                 <el-col :span="12">
                   <el-form-item prop="treeRatio">
                     <span slot="label">
                       <span>可燃物修正系数 K</span>
                       <sub>s</sub>：
                     </span>
-                    <!-- <el-input v-model="fire.treeRatio"></el-input> -->
-                    <el-select v-model="fire.treeRatio" placeholder="请选择 可自定义输入" filterable allow-create default-first-option>
+                    <el-select v-model="fire.treeRatio" placeholder="请选择 可自定义输入" clearable filterable allow-create default-first-option>
                       <el-option v-for="(item, index) in treeRatioList" :key="index" :label="item.label" :value="item.value"></el-option>
                     </el-select>
                   </el-form-item>
                 </el-col>
-              </el-row>
-              <el-row class="row-content-center">
-                <el-col :span="12">
-                  <el-form-item prop="windRatio">
-                    <span slot="label">
-                      <span>风力修正系数 K</span>
-                      <sub>w</sub>：
-                    </span>
-                    <el-input v-model="fire.windRatio"></el-input>
-                  </el-form-item>
+                <el-col :span="2">
+                  <span>{{ fire.treeRatio }}</span>
                 </el-col>
               </el-row>
-              <el-row class="row-content-center">
+              <el-row>
                 <el-col :span="12">
-                  <el-form-item prop="slopeRatio">
-                    <span slot="label">
-                      <span>坡度修正系数 cos&#966;</span>：
-                    </span>
-                    <el-input v-model="fire.slopeRatio"></el-input>
+                  <el-form-item label="风力修正系数">
+                    <el-select v-model="fire.fireSpeedAlgo2" placeholder="请选择" clearable allow-create filterable default-first-option @change="selectChange2">
+                      <el-option v-for="(item, index) in algorithmList2" :key="index" :label="item.label" :value="item.value"></el-option>
+                    </el-select>
                   </el-form-item>
+                </el-col>
+                <el-col :span="2">
+                  <span>{{ fire.windRatio }}</span>
+                </el-col>
+              </el-row>
+              <el-row>
+                <el-col :span="12">
+                  <el-form-item label="坡度修正系数">
+                    <el-select v-model="fire.fireSpeedAlgo3" placeholder="请选择" clearable allow-create filterable default-first-option @change="selectChange3">
+                      <el-option v-for="(item, index) in algorithmList3" :key="index" :label="item.label" :value="item.value"></el-option>
+                    </el-select>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="2">
+                  <span>{{ fire.slopeRatio }}</span>
+                </el-col>
+              </el-row>
+              <el-row>
+                <el-col :span="12">
+                  <span>林火蔓延速度R: {{ fireSpeed }} m/min</span>
                 </el-col>
               </el-row>
             </div>
@@ -264,6 +405,19 @@ const fireSpreadModelList = [
   ['e', 'McArthur林火蔓延模型'],
   ['f', '自定义非确定性林火蔓延模型']
 ]
+const algorithmList1 = [
+  ['算法1', '算法1'],
+  ['算法2', '算法2'],
+  ['算法3', '算法3'],
+  ['算法4', '算法4'],
+  ['算法5', '算法5'],
+]
+const algorithmList2 = [
+  ['算法1', '风速与坡度夹角'],
+]
+const algorithmList3 = [
+  ['算法1', '坡度'],
+]
 function convertArray(list) {
   return list.map(item => {
     return {
@@ -308,11 +462,11 @@ export default {
         // 植被类型
         vegetationType: '',
         // 可燃物修正系数
-        treeRatio: '',
+        treeRatio: 1,
         // 风力修正系数
-        windRatio: '',
+        windRatio: 1,
         // 坡度修正系数
-        slopeRatio: '',
+        slopeRatio: 1,
         // 温度：摄氏度
         temperature: 28,
         // 风力等级：1-12级
@@ -322,7 +476,41 @@ export default {
         // 时间：格式为20210801 23:36:00
         startTime: null,
         currentTime: null,
-        fireTime: null
+        fireTime: null,
+        // 初始速度
+        initSpeed: 0,
+        // 初始速度算法
+        initSpeedAlgo: '',
+        fireSpeedAlgo2: '',
+        fireSpeedAlgo3: '',
+        maxTemperatureByDay: 20,
+        wind2: 4,
+        waterRate: 20,
+        minHumidityByDay: 70,
+        windowSpeed: 0,
+        // 风向与坡向的夹角
+        angel: 0,
+        // 坡度
+        slope: 0,
+        // 火焰区反应强度
+        flameReactionIntensity: 0,
+        // 林火蔓延率
+        spreadRate: 0,
+        // 可燃物密度
+        fuelCompactness: 0,
+        // 有效热系数
+        effectiveHeatCoefficient: 1,
+        // 预燃热Q
+        precombustionHot: 1000,
+        // 风速修正系数
+        windSpeedCorrectionFactor: 1,
+        // 坡度修正系数
+        slopeCorrectionFactor: 1,
+        // 干旱码
+        droughtCode: 1,
+        // 湿度H
+        humidity: 20,
+
       },
       rules: {
         longitude: [
@@ -370,7 +558,29 @@ export default {
       ]),
       paramBoxVisible: false,
       showParamBox: window.forestFire.showAdminSetting,
-      startFireTree: null
+      startFireTree: null,
+      // 算法list1
+      algorithmList1: [],
+      algorithmList2: [],
+      algorithmList3: [],
+      // 弹窗1
+      dialogVisible1: false,
+      // 初始火焰蔓延速度3种算法
+      isShow1: true,
+      isShow2: false,
+      isShow3: false,
+      isShow6: false,
+      isShow7: false,
+      // 风力修正
+      isShow4: false,
+      // 坡度修正
+      isShow5: false,
+    }
+  },
+  computed: {
+    fireSpeed(){
+      // 林火蔓延速度R
+      return this.fire.initSpeed * this.fire.treeRatio * this.fire.windRatio * this.fire.slopeRatio;
     }
   },
   watch: {
@@ -387,6 +597,9 @@ export default {
     this.vegetationTypeList = convertArray(vegetationTypeList)
     this.fireSpreadModelList = convertArray(fireSpreadModelList)
     this.treeRatioList = convertArray(treeRatioList)
+    this.algorithmList1 = convertArray(algorithmList1);
+    this.algorithmList2 = convertArray(algorithmList2);
+    this.algorithmList3 = convertArray(algorithmList3);
   },
   mounted() {
     // this.firesInit()
@@ -985,8 +1198,150 @@ export default {
           color
         }, options))
       })
+    },
+    // 初始火焰蔓延速度选择
+    selectChange1(item) {
+      // clear
+      if (item === ''){
+        this.fire.initSpeed = 0;
+        return;
+      }
+      switch (item) {
+        case '算法1':
+          this.isShow1=true;
+          this.isShow2=false;
+          this.isShow3=false;
+          this.isShow4=false;
+          this.isShow5=false;
+          this.isShow6=false;
+          this.isShow7=false;
+          this.dialogVisible1 = true;
+          break;
+        case '算法2':
+          this.isShow1=false;
+          this.isShow2=true;
+          this.isShow3=false;
+          this.isShow4=false;
+          this.isShow5=false;
+          this.isShow6=false;
+          this.isShow7=false;
+          this.dialogVisible1 = true;
+          break;
+        case '算法3':
+          this.isShow1=false;
+          this.isShow2=false;
+          this.isShow3=true;
+          this.isShow4=false;
+          this.isShow5=false;
+          this.isShow6=false;
+          this.isShow7=false;
+          this.dialogVisible1 = true;
+          break;
+        case '算法4':
+          this.isShow1=false;
+          this.isShow2=false;
+          this.isShow3=false;
+          this.isShow4=false;
+          this.isShow5=false;
+          this.isShow6=true;
+          this.isShow7=false;
+          this.dialogVisible1 = true;
+          break;
+        case '算法5':
+          this.isShow1=false;
+          this.isShow2=false;
+          this.isShow3=false;
+          this.isShow4=false;
+          this.isShow5=false;
+          this.isShow6=false;
+          this.isShow7=true;
+          this.dialogVisible1 = true;
+          break;
+        default:
+          // 自定义
+          this.fire.initSpeed = item;
+      }
+  },
+    // 风力修正
+    selectChange2(item) {
+      // clear
+      if (item === ''){
+        this.fire.windRatio = 1;
+        return;
+      }
+      switch (item) {
+        case '算法1':
+          this.isShow1=false;
+          this.isShow2=false;
+          this.isShow3=false;
+          this.isShow6=false;
+          this.isShow7=false;
+          this.isShow4=true;
+          this.isShow5=false;
+          this.dialogVisible1 = true;
+          break;
+        default:
+          this.fire.windRatio = item;
+      }
+  },
+    // 坡度修正
+    selectChange3(item) {
+      // clear
+      if (item === ''){
+        this.fire.slopeRatio = 1;
+        return;
+      }
+      switch (item) {
+        case '算法1':
+          this.isShow1=false;
+          this.isShow2=false;
+          this.isShow3=false;
+          this.isShow6=false;
+          this.isShow7=false;
+          this.isShow4=false;
+          this.isShow5=true;
+          this.dialogVisible1 = true;
+          break;
+        default:
+          this.fire.slopeRatio = item;
+      }
+  },
+    handleClose() {
+      this.dialogVisible1 = false;
+      if(this.isShow1 || this.isShow2 || this.isShow3 || this.isShow6 || this.isShow7){
+        switch (this.fire.initSpeedAlgo) {
+          case '算法1':
+            this.fire.initSpeed=(this.fire.temperature * 0.0537 + 0.048*this.fire.windGrade - 0.275).toFixed(3);
+            break;
+          case '算法2': 
+            this.fire.initSpeed=(1.0372 * Math.pow(Math.E,-.075*this.fire.waterRate)).toFixed(3);
+            break;
+          case '算法3':
+            this.fire.initSpeed=(this.fire.maxTemperatureByDay * 0.0299 + 0.009*(100-this.fire.minHumidityByDay - 0.304)).toFixed(3);
+            break;
+          case '算法4':
+            this.fire.initSpeed=(this.fire.flameReactionIntensity*this.fire.spreadRate*(1+this.fire.fuelCompactness+this.fire.effectiveHeatCoefficient)/(this.fire.precombustionHot*this.fire.windSpeedCorrectionFactor*this.fire.slopeCorrectionFactor)).toFixed(3);
+            break;
+          case '算法5':
+            // U unkonw
+            this.fire.initSpeed=(0.13*2*Math.pow(Math.E, -0.405+0.987*Math.log(this.fire.droughtCode+0.0348*this.fire.temperature-0.034*this.fire.humidity+0.0234*1))*Math.pow(Math.E, 0.069*this.fire.slope)).toFixed(3);
+            break;
+        }
+      } else if (this.isShow4) {
+        switch (this.fire.fireSpeedAlgo2) {
+          case '算法1':
+            this.fire.windRatio = Math.pow(Math.E, 0.1783*this.fire.windowSpeed * Math.cos(this.fire.slope)).toFixed(3);
+            break;
+        }
+      } else if (this.isShow5) {
+        switch (this.fire.fireSpeedAlgo2) {
+          case '算法1':
+              this.fire.slopeRatio = Math.exp(3.533*Math.tan(this.fire.slope)*1.2).toFixed(3);
+            break;
+        }
+      }
     }
-  }
+  },
 }
 </script>
 <style>
