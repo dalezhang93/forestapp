@@ -578,7 +578,7 @@ export default {
   computed: {
     fireSpeed(){
       // 林火蔓延速度R
-      return this.fire.initSpeed * this.fire.treeRatio * this.fire.windRatio * this.fire.slopeRatio;
+      return (this.fire.initSpeed * this.fire.treeRatio * this.fire.windRatio * this.fire.slopeRatio).toFixed(3);
     }
   },
   watch: {
@@ -800,7 +800,8 @@ export default {
         T: this.fire.temperature,
         W: this.fire.windGrade,
         windAngle: this.fire.windAngle,
-        simulatedtime: this.formatTime(this.fire.currentTime)
+        simulatedtime: this.formatTime(this.fire.currentTime),
+        speed: this.fireSpeed
       }
       nextFire(params)
         .then(res => {
