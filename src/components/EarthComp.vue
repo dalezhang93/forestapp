@@ -457,8 +457,6 @@ export default {
         c: 0.275,
         // 蔓延模型
         fireModel: 'a',
-        // 湿度
-        humidity: '',
         // 植被类型
         vegetationType: '',
         // 可燃物修正系数
