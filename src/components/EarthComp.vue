@@ -289,6 +289,13 @@
                       </el-form-item>
                     </el-col>
                   </el-row>
+                  <el-row>
+                    <el-col :span="12" v-if="isShow7">
+                      <el-form-item label="10米高处平均风速" prop="slope">
+                        <el-input v-model="fire.averageWindSpeedAt10Meters" label="10米高处平均风速(m/min)"></el-input>
+                      </el-form-item>
+                    </el-col>
+                  </el-row>
                 </template>
                 <span slot="footer" class="dialog-footer">
                   <el-button type="primary" @click="handleClose">确定</el-button>
@@ -406,11 +413,11 @@ const fireSpreadModelList = [
   ['f', '自定义非确定性林火蔓延模型']
 ]
 const algorithmList1 = [
-  ['算法1', '算法1'],
-  ['算法2', '算法2'],
-  ['算法3', '算法3'],
-  ['算法4', '算法4'],
-  ['算法5', '算法5'],
+  ['算法1', '王正非算法'],
+  ['算法2', 'CFFDRS算法'],
+  ['算法3', '一种CA回归分析算法'],
+  ['算法4', 'Rothemel算法'],
+  ['算法5', 'McArthur算法'],
 ]
 const algorithmList2 = [
   ['算法1', '风速与坡度夹角'],
@@ -508,7 +515,8 @@ export default {
         droughtCode: 1,
         // 湿度H
         humidity: 20,
-
+        // 10米高处平均风速U（m/min）
+        averageWindSpeedAt10Meters: 0,
       },
       rules: {
         longitude: [
@@ -1322,8 +1330,7 @@ export default {
             this.fire.initSpeed=(this.fire.flameReactionIntensity*this.fire.spreadRate*(1+this.fire.fuelCompactness+this.fire.effectiveHeatCoefficient)/(this.fire.precombustionHot*this.fire.windSpeedCorrectionFactor*this.fire.slopeCorrectionFactor)).toFixed(3);
             break;
           case '算法5':
-            // U unkonw
-            this.fire.initSpeed=(0.13*2*Math.pow(Math.E, -0.405+0.987*Math.log(this.fire.droughtCode+0.0348*this.fire.temperature-0.034*this.fire.humidity+0.0234*1))*Math.pow(Math.E, 0.069*this.fire.slope)).toFixed(3);
+            this.fire.initSpeed=(0.13*2*Math.pow(Math.E, -0.405+0.987*Math.log(this.fire.droughtCode+0.0348*this.fire.temperature-0.034*this.fire.humidity+0.0234*this.fire.averageWindSpeedAt10Meters))*Math.pow(Math.E, 0.069*this.fire.slope)).toFixed(3);
             break;
         }
       } else if (this.isShow4) {
