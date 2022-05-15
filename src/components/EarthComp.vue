@@ -1336,13 +1336,13 @@ export default {
       } else if (this.isShow4) {
         switch (this.fire.fireSpeedAlgo2) {
           case '算法1':
-            this.fire.windRatio = Math.pow(Math.E, 0.1783*this.fire.windowSpeed * Math.cos(this.fire.slope)).toFixed(3);
+            this.fire.windRatio = Math.pow(Math.E, 0.1783*this.fire.windowSpeed * Math.cos(this.fire.slope*Math.PI/180)).toFixed(3);
             break;
         }
       } else if (this.isShow5) {
         switch (this.fire.fireSpeedAlgo2) {
           case '算法1':
-              this.fire.slopeRatio = Math.exp(3.533*Math.tan(this.fire.slope)*1.2).toFixed(3);
+              this.fire.slopeRatio = Math.exp(3.533*Math.tan(this.fire.slope*Math.PI/180)*1.2).toFixed(3);
             break;
         }
       }
